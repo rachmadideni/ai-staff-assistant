@@ -1,0 +1,419 @@
+{
+  "title": "AI Staff Assistant MVP",
+  "source": "JOB.md",
+  "stories": [
+    {
+      "id": 1,
+      "milestone": 2,
+      "title": "Supabase project setup",
+      "description": "Initialize Supabase project, configure auth settings, set up environment variables, enable pgvector extension.",
+      "checks": [
+        "Supabase project exists and is linked",
+        "Auth settings configured (email/password signup enabled)",
+        "pgvector extension enabled in database",
+        "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY set in .env.local",
+        "OPENAI_API_KEY set in .env.local"
+      ],
+      "passes": true
+    },
+    {
+      "id": 2,
+      "milestone": 2,
+      "title": "Tenants table migration + CRUD API",
+      "description": "Create tenants table with all required fields (name, slug, settings, active status, usage limits, created_at, updated_at). Implement CRUD API routes. Enable RLS.",
+      "checks": [
+        "tenants table exists with all required columns",
+        "RLS enabled on tenants table",
+        "Super admin can create, list, get, update, deactivate tenants",
+        "Client admin cannot access other tenants' data",
+        "API returns 403 for unauthorized cross-tenant access"
+      ],
+      "passes": false
+    },
+    {
+      "id": 3,
+      "milestone": 2,
+      "title": "Users table + auth trigger",
+      "description": "Create public.users table referencing auth.users.id. Add role enum (super_admin, client_admin). Create database trigger to auto-create public.users row on auth.users signup. Create invitation/registration flow for client admins.",
+      "checks": [
+        "public.users table exists with id, email, role, tenant_id, created_at",
+        "Auth trigger auto-creates public.users row on signup",
+        "Super admin can invite client admin users",
+        "Client admin users created with correct tenant_id"
+      ],
+      "passes": false
+    },
+    {
+      "id": 4,
+      "milestone": 2,
+      "title": "Super Admin login page",
+      "description": "Create login page with Supabase Auth (email/password). On login, verify role is super_admin. Redirect to super admin dashboard. Handle errors, password reset.",
+      "checks": [
+        "Login form accepts email and password",
+        "Super admin credentials redirect to /dashboard/super-admin",
+        "Client admin credentials redirect to /dashboard/client-admin",
+        "Invalid credentials show error message",
+        "Password reset flow works"
+      ],
+      "passes": false
+    },
+    {
+      "id": 5,
+      "milestone": 2,
+      "title": "Client Admin login page",
+      "description": "Create login page scoped to client admin users. On login, verify role is client_admin and user is linked to a tenant. Redirect to client admin dashboard.",
+      "checks": [
+        "Client admin login works",
+        "Login restricted to client_admin role only",
+        "User sees only their own tenant's data after login",
+        "Super admin cannot log in here (redirect to super admin login)"
+      ],
+      "passes": false
+    },
+    {
+      "id": 6,
+      "milestone": 2,
+      "title": "RLS policies for all tables",
+      "description": "Implement comprehensive RLS policies for tenants, users, documents, business_access_tokens, conversations, and audit_logs tables. Super admin sees all. Client admin sees own tenant only. Staff (anon) access limited to token-based business identification.",
+      "checks": [
+        "RLS enabled on every table",
+        "Super admin can read/write all rows across all tenants",
+        "Client admin can read/write only their own tenant's rows",
+        "Anonymous staff access can only read data for their token's business",
+        "Cross-tenant access consistently returns empty results or 403"
+      ],
+      "passes": false
+    },
+    {
+      "id": 7,
+      "milestone": 3,
+      "title": "business_access_tokens table + API",
+      "description": "Create business_access_tokens table (tenant_id, token, pin_code, label, active, expires_at, created_at). Implement generate/reset/revoke API. Tokens are UUIDs. PIN is optional numeric code.",
+      "checks": [
+        "Table exists with all required columns",
+        "Generate token API creates unique UUID token",
+        "Token resolves to correct tenant",
+        "Reset token generates new UUID, invalidates old one",
+        "Revoke token sets active=false",
+        "Expired token returns 403"
+      ],
+      "passes": false
+    },
+    {
+      "id": 8,
+      "milestone": 3,
+      "title": "Staff chat page (token-based access)",
+      "description": "Create /staff/[token] page. On load, validate token, identify business. Show chat interface with business name. No login required. Session tracks business context. Handle invalid/expired tokens.",
+      "checks": [
+        "Valid token shows chat page with correct business name",
+        "Invalid token shows error/redirect",
+        "Expired/revoked token shows access denied",
+        "No login required to access chat",
+        "Business context correctly identified from token"
+      ],
+      "passes": false
+    },
+    {
+      "id": 9,
+      "milestone": 3,
+      "title": "Optional PIN screen",
+      "description": "If business_access_token has pin_code set, show PIN entry screen before chat. Validate PIN client-side and server-side. Wrong PIN denies access. Correct PIN enters chat. Rate-limit PIN attempts.",
+      "checks": [
+        "Token with pin_code shows PIN screen before chat",
+        "Correct PIN enters chat",
+        "Wrong PIN shows error (max 5 attempts before lockout)",
+        "Token without pin_code goes directly to chat",
+        "PIN validation happens server-side, not just client-side"
+      ],
+      "passes": false
+    },
+    {
+      "id": 10,
+      "milestone": 3,
+      "title": "QR code generation in admin dashboard",
+      "description": "Add QR code display to both super admin and client admin dashboards. QR code encodes the staff access URL. Generate QR code using qrcode.react component.",
+      "checks": [
+        "Super admin can view QR code for any business",
+        "Client admin can view QR code for their own business",
+        "QR code scans to correct /staff/[token] URL",
+        "QR code regenerates when token is reset"
+      ],
+      "passes": false
+    },
+    {
+      "id": 11,
+      "milestone": 3,
+      "title": "Access link disable/reset admin UI",
+      "description": "Add admin UI to disable, enable, and reset staff access tokens. Show token status in admin dashboard. Confirm dialog for destructive actions.",
+      "checks": [
+        "Super admin can disable/enable/reset any business's token",
+        "Client admin can disable/enable/reset their own business's token",
+        "Disabled token immediately stops working",
+        "UI shows confirmation dialog before destructive actions"
+      ],
+      "passes": false
+    },
+    {
+      "id": 12,
+      "milestone": 4,
+      "title": "Document upload API + Storage",
+      "description": "Create document upload endpoint. Store files in Supabase Storage under tenant_id/ prefix. Accept PDF, DOCX, TXT, MD. Validate file type and size (max 10MB). Create documents table with status workflow.",
+      "checks": [
+        "File uploads stored in Supabase Storage under correct tenant prefix",
+        "Accepted file types: PDF, DOCX, TXT, MD",
+        "Rejected file types return 400",
+        "Files over 10MB rejected",
+        "Document record created in documents table with status='draft'"
+      ],
+      "passes": false
+    },
+    {
+      "id": 13,
+      "milestone": 4,
+      "title": "Document status workflow",
+      "description": "Implement document status transitions: draft -> approved -> archived. Only approved documents available for AI retrieval. Admin UI to approve, archive, or delete documents. Status change updates vector index accordingly.",
+      "checks": [
+        "Document can transition from draft to approved",
+        "Document can transition from approved to archived",
+        "Document can be deleted (soft or hard)",
+        "Only approved documents appear in vector search results",
+        "Status change triggers re-indexing"
+      ],
+      "passes": false
+    },
+    {
+      "id": 14,
+      "milestone": 4,
+      "title": "OpenAI embeddings + pgvector indexing",
+      "description": "Generate embeddings using OpenAI text-embedding-3-small. Store in Supabase pgvector. Index by tenant_id for isolated retrieval. Implement vector search function filtered by tenant_id.",
+      "checks": [
+        "Embeddings generated via OpenAI API (not client-side)",
+        "Vectors stored in pgvector with tenant_id column",
+        "Vector search returns only documents for the requesting tenant",
+        "Search returns top 10 most relevant chunks",
+        "Embedding dimension matches text-embedding-3-small (1536)"
+      ],
+      "passes": false
+    },
+    {
+      "id": 15,
+      "milestone": 4,
+      "title": "Document replacement + re-indexing",
+      "description": "When document is replaced or updated, delete old vectors, re-embed new content, re-insert. Handle race conditions during re-indexing. Show indexing status in document list.",
+      "checks": [
+        "Replaced document gets new embeddings (old vectors deleted)",
+        "Archived document vectors removed from search index",
+        "Index status shows processing/active/failed",
+        "Concurrent indexing requests handled gracefully"
+      ],
+      "passes": false
+    },
+    {
+      "id": 16,
+      "milestone": 5,
+      "title": "OpenAI chat completion endpoint",
+      "description": "Backend-only API route for OpenAI chat completions. Accept messages + tenant context. Call OpenAI API server-side. Return streaming or complete response. NEVER expose API key to client.",
+      "checks": [
+        "API route at /api/chat accepts POST with messages and tenant_id",
+        "OpenAI API key NOT visible in browser network tab",
+        "Response contains answer text",
+        "Errors handled gracefully (no stack traces exposed)",
+        "Model configurable via environment variable"
+      ],
+      "passes": false
+    },
+    {
+      "id": 17,
+      "milestone": 5,
+      "title": "Business-scoped pgvector retrieval",
+      "description": "Before LLM call, retrieve relevant chunks from pgvector filtered by tenant_id. Include retrieved context in the LLM prompt. Chunks must belong to the requesting business only.",
+      "checks": [
+        "Retrieval queries filter by tenant_id",
+        "Only approved documents are included in retrieval",
+        "Top 5-10 chunks passed to LLM as context",
+        "Business A token never retrieves Business B chunks",
+        "Retrieval timeout handled gracefully"
+      ],
+      "passes": false
+    },
+    {
+      "id": 18,
+      "milestone": 5,
+      "title": "Strict system prompt with escalation rules",
+      "description": "Create system prompt enforcing: answer only from approved docs, no inventing, escalate for sensitive topics. Escalation categories: injuries, emergencies, harassment, discrimination, payroll, termination, legal, medical, refunds outside policy.",
+      "checks": [
+        "System prompt loaded from server-side config",
+        "Prompt instructs to answer only from provided context",
+        "Prompt includes escalation categories",
+        "Escalation response: 'I can't find an approved answer. Please ask your manager.'",
+        "Urgent escalation: 'This may require immediate manager involvement.'"
+      ],
+      "passes": false
+    },
+    {
+      "id": 19,
+      "milestone": 5,
+      "title": "Source citation in answers",
+      "description": "Include document name/source reference in AI answers. Format: 'According to [Document Name]...'. Show which documents were used for each answer in conversation log.",
+      "checks": [
+        "Answer includes document reference when possible",
+        "Source documents logged in conversation record",
+        "Answer without source if no matching document found (escalation)",
+        "Citation format: 'According to [document name] - [section]'"
+      ],
+      "passes": false
+    },
+    {
+      "id": 20,
+      "milestone": 5,
+      "title": "Mobile-responsive chat UI",
+      "description": "Build chat interface with: large readable text, simple input area, disclaimer banner, escalation guidance, business name header. Mobile-first responsive design. Fast initial load.",
+      "checks": [
+        "Chat page works on mobile viewport (375px width)",
+        "Text is readable without zooming",
+        "Disclaimer visible near input area",
+        "Business name displayed in header",
+        "Page loads in under 3 seconds on mobile connection",
+        "Lighthouse mobile score > 80"
+      ],
+      "passes": false
+    },
+    {
+      "id": 21,
+      "milestone": 6,
+      "title": "Super Admin dashboard",
+      "description": "Full super admin dashboard with: list all businesses, create business, edit business settings, disable business, view all usage, view all conversation logs, manage client admin users per business.",
+      "checks": [
+        "Super admin sees all businesses in table/list",
+        "Create business form works (creates tenant + access token)",
+        "Edit business settings works",
+        "Disable business immediately stops staff access",
+        "Super admin can view logs for any business"
+      ],
+      "passes": false
+    },
+    {
+      "id": 22,
+      "milestone": 6,
+      "title": "Client Admin dashboard",
+      "description": "Client admin dashboard with: business settings view, staff access link + QR code display, document list, reset access code, view own conversation logs, view own usage.",
+      "checks": [
+        "Client admin sees only their own business data",
+        "Staff access link and QR code displayed",
+        "Document list shows only own business documents",
+        "Cannot access other businesses' data via URL manipulation",
+        "Usage stats shown for current month"
+      ],
+      "passes": false
+    },
+    {
+      "id": 23,
+      "milestone": 6,
+      "title": "Conversation logs table + view",
+      "description": "Store staff questions, AI answers, timestamps, source documents, escalation flag, token usage. Per-business view for client admin. Global view for super admin. Search/filter by date.",
+      "checks": [
+        "Each conversation log has: question, answer, timestamp, sources, escalation_flag, token_count",
+        "Client admin sees only their business's logs",
+        "Super admin sees all logs with tenant filter",
+        "Logs filterable by date range",
+        "Escalated questions flagged and filterable"
+      ],
+      "passes": false
+    },
+    {
+      "id": 24,
+      "milestone": 6,
+      "title": "Usage tracking per business",
+      "description": "Track monthly: question count, AI response count, escalation count, token usage, estimated cost. Monthly reset. Display in both dashboards. Store usage in usage_tracking table.",
+      "checks": [
+        "Usage counter increments with each staff question",
+        "Usage data scoped by tenant_id and month",
+        "Client admin sees their own usage",
+        "Super admin sees all businesses' usage",
+        "Monthly reset works (counters start fresh each month)"
+      ],
+      "passes": false
+    },
+    {
+      "id": 25,
+      "milestone": 6,
+      "title": "Usage caps + near-limit warning",
+      "description": "Per-business monthly question limit (configurable by super admin). Warning banner when approaching limit (80%). Block questions when limit reached. Super admin can adjust limits per business.",
+      "checks": [
+        "Default limit: 500 questions/month",
+        "Warning banner shown at 80% usage",
+        "Questions blocked when limit reached with clear message",
+        "Super admin can adjust limit per business",
+        "Limit check happens server-side (not just client-side)"
+      ],
+      "passes": false
+    },
+    {
+      "id": 26,
+      "milestone": 6,
+      "title": "Escalated/missing questions report",
+      "description": "Report page showing questions where assistant said 'ask a manager'. Helpful for identifying gaps in knowledge base. Both admin roles can view (scoped).",
+      "checks": [
+        "Shows questions that received escalation response",
+        "Client admin sees only their business's escalations",
+        "Super admin sees all escalations with tenant filter",
+        "Identifies patterns in missing knowledge",
+        "Exportable or shareable view"
+      ],
+      "passes": false
+    },
+    {
+      "id": 27,
+      "milestone": 7,
+      "title": "50 test cases execution",
+      "description": "Run 50 realistic test cases covering: questions answered in docs, questions not covered, sensitive topics requiring escalation, cross-tenant isolation, rate limiting, mobile chat, document re-indexing.",
+      "checks": [
+        "15+ questions clearly answered in documents pass",
+        "10+ questions not covered return escalation",
+        "10+ sensitive topics return escalation",
+        "5 cross-tenant isolation tests pass (Token A cannot access Business B)",
+        "5 rate-limiting/abuse tests pass",
+        "5 mobile/responsive tests pass"
+      ],
+      "passes": false
+    },
+    {
+      "id": 28,
+      "milestone": 7,
+      "title": "Deploy to Vercel",
+      "description": "Deploy application to Vercel. Configure environment variables. Set up production Supabase project. Verify all features work in production. Configure custom domain if available.",
+      "checks": [
+        "App accessible at production URL",
+        "All environment variables configured in Vercel",
+        "Supabase production project linked",
+        "Auth redirect URLs configured for production",
+        "All API routes work in production",
+        "HTTPS enforced"
+      ],
+      "passes": false
+    },
+    {
+      "id": 29,
+      "milestone": 7,
+      "title": "Admin handover documentation",
+      "description": "Create handover docs: setup instructions, how to add a new business, how to add client admins, how to generate/reset access links, how to upload/re-index documents, how to view usage/logs, troubleshooting guide.",
+      "checks": [
+        "Setup instructions complete (env vars, Supabase, deploy)",
+        "Step-by-step guide for adding a new business",
+        "How to add/remove client admin users",
+        "How to generate and reset staff access links",
+        "How to upload, approve, archive documents",
+        "Troubleshooting section for common issues"
+      ],
+      "passes": false
+    }
+  ],
+  "milestones": {
+    "2": "Admin Authentication & Multi-Tenant Structure",
+    "3": "Shared Staff Access",
+    "4": "Document Upload & Knowledge Base",
+    "5": "Staff Chat Assistant",
+    "6": "Admin Dashboards & Usage Logs",
+    "7": "Testing, Deployment & Handover"
+  }
+}

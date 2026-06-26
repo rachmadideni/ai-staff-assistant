@@ -1,0 +1,5 @@
+# Ralph Progress — AI Staff Assistant MVP
+# Format: [date] story-N: description | outcome | learnings
+
+[2026-06-27] story-1: Supabase project setup | ✅ typecheck passes, tests fail (ECONNREFUSED — need dev server), migration SQL fixed (parenthesized OR in validate_access_token), supabase init created config.toml with email/password auth, .env.local created from example | Fixed SQL operator precedence bug in 004_business_access_tokens.sql — AND/OR nesting without parens. Tests are integration-style (fetch localhost:3000) and cannot pass without dev server — this is expected for infra setup stories.
+
