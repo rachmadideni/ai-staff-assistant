@@ -28,7 +28,7 @@
         "Client admin cannot access other tenants' data",
         "API returns 403 for unauthorized cross-tenant access"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 3,
