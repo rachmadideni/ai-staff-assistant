@@ -55,7 +55,7 @@
         "Invalid credentials show error message",
         "Password reset flow works"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 5,

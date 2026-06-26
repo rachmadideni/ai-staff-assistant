@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
@@ -101,6 +102,15 @@ export default function LoginPage() {
           {error && (
             <p className="text-sm text-destructive">{error}</p>
           )}
+
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <button
             type="submit"
