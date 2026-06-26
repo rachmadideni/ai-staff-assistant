@@ -41,7 +41,7 @@
         "Super admin can invite client admin users",
         "Client admin users created with correct tenant_id"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 4,

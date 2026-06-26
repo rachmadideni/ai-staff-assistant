@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { InviteForm } from "./invite-form"
 
 export default async function SuperAdminDashboard() {
   const supabase = await createServerSupabaseClient()
@@ -64,6 +65,10 @@ export default async function SuperAdminDashboard() {
           <p className="text-sm text-muted-foreground">Escalations</p>
         </div>
       </div>
+
+      {tenants && tenants.length > 0 && (
+        <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} />
+      )}
 
       <div>
         <h2 className="text-lg font-semibold mb-3">All Businesses</h2>

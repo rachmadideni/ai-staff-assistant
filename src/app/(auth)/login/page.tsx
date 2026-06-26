@@ -30,11 +30,23 @@ export default function LoginPage() {
       return
     }
 
-    const { data: userData } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", (await supabase.auth.getUser()).data.user?.id)
-      .single()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError("Failed to get user session")
+      setLoading(false)
+      return
+    }
+
+    let userData: { role: string } | null = null
+    for (let i = 0; i < 5; i++) {
+      const { data } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+      if (data) { userData = data; break }
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)))
+    }
 
     if (userData?.role === "super_admin") {
       router.push("/dashboard/super-admin")
