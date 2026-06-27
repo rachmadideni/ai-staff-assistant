@@ -1,13 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { QRCodeSVG } from "qrcode.react"
+import { DocumentManager } from "../client-admin/document-manager"
 
 interface AccessToken {
   id: string
   token: string
   label: string
   is_active: boolean
+}
+
+interface Document {
+  id: string
+  filename: string
+  status: "draft" | "approved" | "archived"
+  created_at: string
+  file_type: string
+  file_size: number
 }
 
 interface BusinessRowProps {
@@ -20,12 +30,27 @@ interface BusinessRowProps {
     created_at: string
   }
   accessToken: AccessToken | null
+  authPayload: string
 }
 
-export function BusinessRow({ tenant, accessToken }: BusinessRowProps) {
+export function BusinessRow({ tenant, accessToken, authPayload }: BusinessRowProps) {
   const [expanded, setExpanded] = useState(false)
+  const [showDocuments, setShowDocuments] = useState(false)
   const [token, setToken] = useState<AccessToken | null>(accessToken)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [documents, setDocuments] = useState<Document[] | null>(null)
+  const [docsLoading, setDocsLoading] = useState(false)
+
+  useEffect(() => {
+    if (showDocuments && documents === null) {
+      setDocsLoading(true)
+      fetch(`/api/documents?authPayload=${encodeURIComponent(authPayload)}&tenant_id=${tenant.id}`)
+        .then((r) => r.json())
+        .then((data) => setDocuments(data.documents || []))
+        .catch(() => setDocuments([]))
+        .finally(() => setDocsLoading(false))
+    }
+  }, [showDocuments])
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
   const staffUrl = token ? `${baseUrl}/staff/${token.token}` : ""
@@ -100,7 +125,7 @@ export function BusinessRow({ tenant, accessToken }: BusinessRowProps) {
       </tr>
       {expanded && token && (
         <tr>
-          <td colSpan={7} className="px-4 py-3 bg-muted/30">
+          <td colSpan={7} className="px-4 py-3 bg-muted/30 space-y-3">
             <div className="flex items-start gap-6">
               <div className="bg-white p-2 rounded-lg">
                 <QRCodeSVG value={staffUrl} size={120} />
@@ -142,9 +167,28 @@ export function BusinessRow({ tenant, accessToken }: BusinessRowProps) {
                   >
                     Copy
                   </button>
+                  <button
+                    onClick={() => setShowDocuments(!showDocuments)}
+                    className="rounded-md border border-input px-3 py-1 text-xs font-medium hover:bg-accent"
+                  >
+                    {showDocuments ? "Hide Docs" : "Documents"}
+                  </button>
                 </div>
               </div>
             </div>
+            {showDocuments && (
+              <div>
+                {docsLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading documents...</p>
+                ) : documents ? (
+                  <DocumentManager
+                    initialDocuments={documents}
+                    authPayload={authPayload}
+                    tenantId={tenant.id}
+                  />
+                ) : null}
+              </div>
+            )}
           </td>
         </tr>
       )}

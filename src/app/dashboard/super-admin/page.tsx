@@ -126,6 +126,7 @@ export default async function SuperAdminDashboard() {
                   key={tenant.id}
                   tenant={tenant}
                   accessToken={tokenMap.get(tenant.id) || null}
+                  authPayload={authPayload}
                 />
               ))}
               {(!tenants || tenants.length === 0) && (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 interface Document {
   id: string
@@ -24,19 +24,24 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 export function DocumentManager({
   initialDocuments,
   authPayload,
+  tenantId,
 }: {
   initialDocuments: Document[]
   authPayload: string
+  tenantId?: string
 }) {
   const [documents, setDocuments] = useState(initialDocuments)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setMessage(null)
+    setUploadProgress(0)
 
     const fileInput = (e.currentTarget.elements.namedItem("file") as HTMLInputElement)
     const file = fileInput?.files?.[0]
@@ -62,16 +67,30 @@ export function DocumentManager({
       const body = new FormData()
       body.append("file", file)
       body.append("authPayload", authPayload)
+      if (tenantId) body.append("tenant_id", tenantId)
 
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        body,
+      const data = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.upload.addEventListener("progress", (ev) => {
+          if (ev.lengthComputable) {
+            setUploadProgress(Math.round((ev.loaded / ev.total) * 100))
+          }
+        })
+        xhr.addEventListener("load", () => {
+          try {
+            resolve(JSON.parse(xhr.responseText))
+          } catch {
+            reject(new Error("Invalid response"))
+          }
+        })
+        xhr.addEventListener("error", () => reject(new Error("Network error")))
+        xhr.addEventListener("abort", () => reject(new Error("Upload cancelled")))
+        xhr.open("POST", "/api/documents")
+        xhr.send(body)
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || "Upload failed")
+      if (data.error) {
+        setError(data.error)
         setUploading(false)
         return
       }
@@ -143,10 +162,12 @@ export function DocumentManager({
         <form onSubmit={handleUpload} className="space-y-3">
           <div>
             <input
+              ref={fileInputRef}
               type="file"
               name="file"
               accept={ALLOWED_EXTENSIONS}
-              className="w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+              disabled={uploading}
+              className="w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90 disabled:opacity-50"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -155,12 +176,20 @@ export function DocumentManager({
               disabled={uploading}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {uploading ? "Uploading..." : "Upload"}
+              {uploading ? `Uploading ${uploadProgress}%` : "Upload"}
             </button>
             <span className="text-xs text-muted-foreground">
               PDF, DOCX, TXT, MD &middot; Max 10MB
             </span>
           </div>
+          {uploading && (
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-200"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          )}
         </form>
       </div>
 

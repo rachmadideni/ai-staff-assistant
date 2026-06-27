@@ -408,7 +408,7 @@
         "Super admin can manage documents for any business",
         "Status changes reflected immediately in the list"
       ],
-      "passes": false
+      "passes": true
     }
   ],
   "milestones": {
