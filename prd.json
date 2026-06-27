@@ -391,7 +391,7 @@
         "How to upload, approve, archive documents",
         "Troubleshooting section for common issues"
       ],
-      "passes": false
+      "passes": true
     }
   ],
   "milestones": {
