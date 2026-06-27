@@ -376,7 +376,7 @@
         "All API routes work in production",
         "HTTPS enforced"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 29,
