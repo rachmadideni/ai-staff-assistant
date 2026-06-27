@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { processDocument, reindexDocument } from "@/lib/documents"
 
+export const dynamic = "force-dynamic"
+
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
