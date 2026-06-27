@@ -1,6 +1,8 @@
 "use client"
 
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 interface Conversation {
   id: string
@@ -20,10 +22,7 @@ interface Tenant {
 }
 
 interface Props {
-  conversations: Conversation[]
-  tenants: Tenant[]
-  isSuperAdmin?: boolean
-  currentTenantId?: string
+  isSuperAdmin: boolean
 }
 
 function formatDate(iso: string) {
@@ -33,7 +32,17 @@ function formatDate(iso: string) {
   })
 }
 
-export function ConversationLogs({ conversations, tenants, isSuperAdmin, currentTenantId }: Props) {
+function ConversationLogsTable({
+  conversations,
+  tenants,
+  isSuperAdmin,
+  currentTenantId,
+}: {
+  conversations: Conversation[]
+  tenants: Tenant[]
+  isSuperAdmin: boolean
+  currentTenantId?: string
+}) {
   const [filterTenant, setFilterTenant] = useState(isSuperAdmin ? "all" : currentTenantId || "all")
   const [escalationOnly, setEscalationOnly] = useState(false)
   const [dateFrom, setDateFrom] = useState("")
@@ -60,7 +69,7 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
   })
 
   return (
-    <div className="space-y-4">
+    <>
       <div className="flex gap-4 items-center flex-wrap">
         {isSuperAdmin && (
           <select
@@ -148,8 +157,8 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
                   </td>
                 </tr>
                 {expanded === c.id && (
-                    <tr>
-                        <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-3 bg-muted/30 space-y-2">
+                  <tr>
+                    <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-3 bg-muted/30 space-y-2">
                       <div>
                         <p className="text-xs font-medium text-muted-foreground mb-1">Question</p>
                         <p className="text-sm whitespace-pre-wrap">{c.question}</p>
@@ -186,6 +195,104 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
           </tbody>
         </table>
       </div>
+    </>
+  )
+}
+
+export function ConversationLogs({ isSuperAdmin }: Props) {
+  const router = useRouter()
+  const supabase = createClient()
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [tenants, setTenants] = useState<Tenant[]>([])
+  const [tenantName, setTenantName] = useState("")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push("/login")
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role, tenant_id")
+        .eq("id", user.id)
+        .single()
+
+      if (!profile) {
+        router.push("/login")
+        return
+      }
+
+      if (isSuperAdmin && profile.role !== "super_admin") {
+        router.push("/dashboard/client-admin")
+        return
+      }
+      if (!isSuperAdmin && (profile.role !== "client_admin" || !profile.tenant_id)) {
+        router.push("/login")
+        return
+      }
+
+      let convoQuery = supabase
+        .from("conversations")
+        .select("id, tenant_id, session_id, question, answer, sources, escalation_flag, token_count, created_at")
+
+      if (!isSuperAdmin && profile.tenant_id) {
+        convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
+      }
+
+      if (!isSuperAdmin && profile.tenant_id) {
+        convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
+      }
+
+      convoQuery = convoQuery.order("created_at", { ascending: false }).limit(200)
+
+      const [convoResult, tenantResult] = await Promise.all([
+        convoQuery,
+        isSuperAdmin
+          ? supabase.from("tenants").select("id, name").eq("is_active", true).order("name")
+          : profile.tenant_id
+            ? supabase.from("tenants").select("name").eq("id", profile.tenant_id).single()
+            : { data: null },
+      ])
+
+      if (cancelled) return
+
+      if (convoResult.data) setConversations(convoResult.data)
+      if (tenantResult.data) {
+        if (Array.isArray(tenantResult.data)) {
+          setTenants(tenantResult.data)
+        } else {
+          setTenantName(tenantResult.data.name)
+          setTenants([{ id: profile.tenant_id!, name: tenantResult.data.name }])
+        }
+      }
+
+      setLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [isSuperAdmin, supabase, router])
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground">Loading conversations...</p>
+  }
+
+  return (
+    <div className="space-y-4">
+      {tenantName && (
+        <p className="text-sm text-muted-foreground">{tenantName}</p>
+      )}
+      <ConversationLogsTable
+        conversations={conversations}
+        tenants={tenants}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>
   )
 }
