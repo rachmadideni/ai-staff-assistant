@@ -11,6 +11,9 @@ export default async function SuperAdminDashboard() {
 
   if (!user) redirect("/login")
 
+  const { data: { session } } = await supabase.auth.getSession()
+  const accessToken = session?.access_token
+
   const { data: profile } = await supabase
     .from("users")
     .select("role")
@@ -96,7 +99,7 @@ export default async function SuperAdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CreateBusinessForm />
         {tenants && tenants.length > 0 && (
-          <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} />
+          <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} accessToken={accessToken || ""} />
         )}
       </div>
 

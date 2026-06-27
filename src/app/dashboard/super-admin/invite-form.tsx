@@ -1,10 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { inviteClientAdmin } from "./actions"
 
-export function InviteForm({ tenants }: { tenants: { id: string; name: string }[] }) {
+export function InviteForm({ tenants, accessToken }: { tenants: { id: string; name: string }[]; accessToken: string }) {
   const [email, setEmail] = useState("")
   const [tenantId, setTenantId] = useState("")
   const [message, setMessage] = useState<string | null>(null)
@@ -17,10 +16,7 @@ export function InviteForm({ tenants }: { tenants: { id: string; name: string }[
     setMessage(null)
     setError(null)
 
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session?.access_token) {
+    if (!accessToken) {
       setError("No active session. Please sign in again.")
       setLoading(false)
       return
@@ -29,7 +25,7 @@ export function InviteForm({ tenants }: { tenants: { id: string; name: string }[
     const result = await inviteClientAdmin({
       email,
       tenant_id: tenantId,
-      accessToken: session.access_token,
+      accessToken,
     })
 
     if (!result || result.error) {
