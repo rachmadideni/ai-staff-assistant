@@ -23,6 +23,10 @@ async function extractTextFromFile(
   const buffer = Buffer.from(await data.arrayBuffer())
 
   if (fileType === "pdf") {
+    if (typeof globalThis.DOMMatrix === "undefined") {
+      const CSSMatrix = (await import("dommatrix")).default
+      ;(globalThis as any).DOMMatrix = CSSMatrix
+    }
     const { PDFParse } = await import("pdf-parse")
     const parser = new PDFParse({ data: buffer })
     const result = await parser.getText()
