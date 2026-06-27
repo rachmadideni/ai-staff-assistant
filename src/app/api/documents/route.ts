@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { ensureDocumentsBucket } from "@/lib/documents"
+import { verifyHmac } from "@/lib/auth-utils"
 
 export const dynamic = "force-dynamic"
 
@@ -14,28 +16,47 @@ const ALLOWED_TYPES = [
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 
+async function lookupProfile(userId: string) {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("users")
+    .select("id, role, tenant_id")
+    .eq("id", userId)
+    .single()
+  return data
+}
+
 export async function POST(request: Request) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role, tenant_id")
-      .eq("id", user.id)
-      .single()
-
-    if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
     const formData = await request.formData()
     const file = formData.get("file") as File | null
-    const tenantId = formData.get("tenant_id") as string || profile.tenant_id
+    const authPayload = formData.get("authPayload") as string | null
+    const bodyTenantId = formData.get("tenant_id") as string | null
+
+    let auth: { user: { id: string }; profile: { id: string; role: string; tenant_id: string | null } } | null = null
+
+    if (authPayload) {
+      const userId = verifyHmac(authPayload)
+      if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const profile = await lookupProfile(userId)
+      if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = { user: { id: userId }, profile }
+    } else {
+      const supabase = await createServerSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const profile = await lookupProfile(user.id)
+      if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = { user, profile }
+    }
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
@@ -43,7 +64,7 @@ export async function POST(request: Request) {
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: `Unsupported file type: ${file.type}. Allowed: PDF, DOCX, TXT, MD` },
+        { error: "Unsupported file type. Allowed: PDF, DOCX, TXT, MD" },
         { status: 400 }
       )
     }
@@ -55,14 +76,20 @@ export async function POST(request: Request) {
       )
     }
 
-    if (profile.role === "client_admin" && tenantId !== profile.tenant_id) {
+    const tenantId = bodyTenantId || auth.profile.tenant_id
+
+    if (auth.profile.role === "client_admin" && tenantId !== auth.profile.tenant_id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    if (!tenantId) {
+      return NextResponse.json({ error: "Tenant ID is required" }, { status: 400 })
     }
 
     const admin = createAdminClient()
     await ensureDocumentsBucket()
     const fileExt = file.name.split(".").pop()
-    const filePath = `${tenantId}/${crypto.randomUUID()}.${fileExt}`
+    const filePath = `${tenantId}/${randomUUID()}.${fileExt}`
 
     const { error: uploadError } = await admin.storage
       .from("documents")
@@ -84,7 +111,7 @@ export async function POST(request: Request) {
         file_type: fileExt || "",
         file_size: file.size,
         status: "draft",
-        uploaded_by: user.id,
+        uploaded_by: auth.user.id,
       })
       .select()
       .single()
@@ -109,35 +136,47 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { searchParams } = new URL(request.url)
+    const authPayload = searchParams.get("authPayload")
 
-    if (!user) {
+    let auth: { user: { id: string }; profile: { id: string; role: string; tenant_id: string | null } } | null = null
+
+    if (authPayload) {
+      const userId = verifyHmac(authPayload)
+      if (userId) {
+        const profile = await lookupProfile(userId)
+        if (profile && (profile.role === "super_admin" || profile.role === "client_admin")) {
+          auth = { user: { id: userId }, profile }
+        }
+      }
+    }
+
+    if (!auth) {
+      const supabase = await createServerSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const profile = await lookupProfile(user.id)
+        if (profile && (profile.role === "super_admin" || profile.role === "client_admin")) {
+          auth = { user, profile }
+        }
+      }
+    }
+
+    if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role, tenant_id")
-      .eq("id", user.id)
-      .single()
+    const tenantId = searchParams.get("tenant_id") || auth.profile.tenant_id
 
-    if (!profile) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get("tenant_id") || profile.tenant_id
-
-    if (profile.role === "client_admin" && tenantId !== profile.tenant_id) {
+    if (auth.profile.role === "client_admin" && tenantId !== auth.profile.tenant_id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const admin = createAdminClient()
     let query = admin.from("documents").select("*")
 
-    if (profile.role === "client_admin") {
-      query = query.eq("tenant_id", profile.tenant_id)
+    if (auth.profile.role === "client_admin") {
+      query = query.eq("tenant_id", auth.profile.tenant_id)
     } else if (tenantId) {
       query = query.eq("tenant_id", tenantId)
     }

@@ -2,29 +2,50 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { processDocument, reindexDocument } from "@/lib/documents"
+import { getAuthUser } from "@/lib/auth-utils"
 
 export const dynamic = "force-dynamic"
+
+async function lookupProfile(userId: string) {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("users")
+    .select("id, role, tenant_id")
+    .eq("id", userId)
+    .single()
+  return data
+}
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const body = await request.json()
+    const { action, authPayload } = body
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let auth: { user: { id: string }; profile: { id: string; role: string; tenant_id: string | null } } | null = null
 
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role, tenant_id")
-      .eq("id", user.id)
-      .single()
-
-    if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    if (authPayload) {
+      const authUser = await getAuthUser(authPayload)
+      if (!authUser) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      if (authUser.profile.role !== "super_admin" && authUser.profile.role !== "client_admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = authUser
+    } else {
+      const supabase = await createServerSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const profile = await lookupProfile(user.id)
+      if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = { user, profile }
     }
 
     const admin = createAdminClient()
@@ -39,11 +60,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
-    if (profile.role === "client_admin" && existing.tenant_id !== profile.tenant_id) {
+    if (auth.profile.role === "client_admin" && existing.tenant_id !== auth.profile.tenant_id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
-
-    const { action } = await request.json()
 
     if (action === "approve") {
       await processDocument(params.id, existing.tenant_id)
@@ -78,25 +97,35 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { searchParams } = new URL(request.url)
+    const authPayload = searchParams.get("authPayload")
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let auth: { user: { id: string }; profile: { id: string; role: string; tenant_id: string | null } } | null = null
 
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role, tenant_id")
-      .eq("id", user.id)
-      .single()
-
-    if (!profile || profile.role !== "super_admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    if (authPayload) {
+      const authUser = await getAuthUser(authPayload)
+      if (!authUser) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      if (authUser.profile.role !== "super_admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = authUser
+    } else {
+      const supabase = await createServerSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const profile = await lookupProfile(user.id)
+      if (!profile || profile.role !== "super_admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+      auth = { user, profile }
     }
 
     const admin = createAdminClient()

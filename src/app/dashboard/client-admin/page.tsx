@@ -1,7 +1,9 @@
+import { createHmac } from "crypto"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { StaffAccessCard } from "../staff-access-card"
+import { DocumentManager } from "./document-manager"
 
 export default async function ClientAdminDashboard() {
   const supabase = await createServerSupabaseClient()
@@ -34,7 +36,7 @@ export default async function ClientAdminDashboard() {
     .select("*")
     .eq("tenant_id", profile.tenant_id)
     .order("created_at", { ascending: false })
-    .limit(10)
+    .limit(50)
 
   const { data: usage } = await supabase
     .from("usage_tracking")
@@ -47,6 +49,10 @@ export default async function ClientAdminDashboard() {
   const staffUrl = accessToken
     ? `${process.env.NEXT_PUBLIC_APP_URL}/staff/${accessToken.token}`
     : null
+
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  const signature = createHmac("sha256", secret).update(user.id).digest("hex")
+  const authPayload = JSON.stringify({ userId: user.id, signature })
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -105,41 +111,8 @@ export default async function ClientAdminDashboard() {
       )}
 
       <div>
-        <h2 className="text-lg font-semibold mb-3">Recent Documents</h2>
-        <div className="rounded-lg border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                <th className="text-left px-4 py-2 font-medium">Filename</th>
-                <th className="text-left px-4 py-2 font-medium">Status</th>
-                <th className="text-left px-4 py-2 font-medium">Uploaded</th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents?.map((doc) => (
-                <tr key={doc.id} className="border-t">
-                  <td className="px-4 py-2">{doc.filename}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        doc.status === "approved"
-                          ? "bg-green-100 text-green-700"
-                          : doc.status === "draft"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {doc.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {new Date(doc.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="text-lg font-semibold mb-3">Documents</h2>
+        <DocumentManager initialDocuments={documents || []} authPayload={authPayload} />
       </div>
     </div>
   )
