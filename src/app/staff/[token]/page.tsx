@@ -1,36 +1,52 @@
 "use client"
 
-import { use, useState, useRef, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
 interface Message {
   role: "user" | "assistant"
   content: string
+  sources?: string[]
+  escalation?: boolean
 }
+
+const STORAGE_KEY_PREFIX = "staff_session_"
 
 export default function StaffChatPage({
   params,
 }: {
-  params: Promise<{ token: string }>
+  params: { token: string }
 }) {
-  const { token } = use(params)
+  const { token } = params
   const [businessName, setBusinessName] = useState<string | null>(null)
   const [requiresPin, setRequiresPin] = useState(false)
   const [pinVerified, setPinVerified] = useState(false)
   const [pin, setPin] = useState("")
   const [pinError, setPinError] = useState<string | null>(null)
+  const [pinAttempts, setPinAttempts] = useState(0)
+  const [pinLocked, setPinLocked] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [tokenValid, setTokenValid] = useState(true)
   const [tokenError, setTokenError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const supabase = createClient()
-  const sessionId = useRef(crypto.randomUUID())
+  const supabaseRef = useRef<any>(null)
+
+  const sessionIdKey = `${STORAGE_KEY_PREFIX}${token}`
+  const storedId = typeof window !== "undefined" ? sessionStorage.getItem(sessionIdKey) ?? crypto.randomUUID() : crypto.randomUUID()
+  const [sessionId, setSessionId] = useState(storedId)
 
   useEffect(() => {
-    async function validateToken() {
+    sessionStorage.setItem(sessionIdKey, sessionId)
+  }, [sessionId, sessionIdKey])
+
+  useEffect(() => {
+    async function initSupabase() {
+      const { createClient } = await import("@/lib/supabase/client")
+      supabaseRef.current = createClient()
+      const supabase = supabaseRef.current
+
       const { data, error } = await supabase.rpc("validate_access_token", {
         p_token: token,
       })
@@ -48,8 +64,8 @@ export default function StaffChatPage({
         setPinVerified(true)
       }
     }
-    validateToken()
-  }, [token, supabase])
+    initSupabase()
+  }, [token])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -57,15 +73,29 @@ export default function StaffChatPage({
 
   async function handlePinSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (pinAttempts >= 5) {
+      setPinLocked(true)
+      return
+    }
+
     setPinError(null)
 
+    const supabase = supabaseRef.current
+    if (!supabase) return
     const { data, error } = await supabase.rpc("verify_access_pin", {
       p_token: token,
       p_pin: pin,
     })
 
     if (error || !data?.valid) {
-      setPinError("Invalid PIN. Please try again.")
+      const attempts = pinAttempts + 1
+      setPinAttempts(attempts)
+      if (attempts >= 5) {
+        setPinLocked(true)
+        setPinError("Too many incorrect attempts. Access locked.")
+      } else {
+        setPinError(`Invalid PIN. ${5 - attempts} attempt(s) remaining.`)
+      }
       return
     }
 
@@ -88,7 +118,7 @@ export default function StaffChatPage({
         body: JSON.stringify({
           token,
           question,
-          session_id: sessionId.current,
+          session_id: sessionId,
         }),
       })
 
@@ -100,7 +130,7 @@ export default function StaffChatPage({
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.answer },
+        { role: "assistant", content: data.answer, sources: data.sources, escalation: data.escalation },
       ])
     } catch (err) {
       setMessages((prev) => [
@@ -154,17 +184,24 @@ export default function StaffChatPage({
                 placeholder="• • • •"
                 maxLength={6}
                 autoFocus
+                disabled={pinLocked}
               />
             </div>
             {pinError && (
               <p className="text-sm text-destructive text-center">{pinError}</p>
             )}
-            <button
-              type="submit"
-              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              Enter
-            </button>
+            {pinLocked ? (
+              <p className="text-sm text-destructive text-center">
+                Please contact your manager for a new access link.
+              </p>
+            ) : (
+              <button
+                type="submit"
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Enter
+              </button>
+            )}
           </form>
         </div>
       </div>
@@ -188,24 +225,34 @@ export default function StaffChatPage({
         )}
 
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex",
-              msg.role === "user" ? "justify-end" : "justify-start"
-            )}
-          >
             <div
+              key={i}
               className={cn(
-                "max-w-[80%] rounded-lg px-4 py-2 text-sm",
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
+                "flex",
+                msg.role === "user" ? "justify-end" : "justify-start"
               )}
             >
-              {msg.content}
+              <div
+                className={cn(
+                  "max-w-[80%] rounded-lg px-4 py-2 text-sm",
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                )}
+              >
+                <p className="whitespace-pre-wrap">{msg.content}</p>
+                {msg.sources && msg.sources.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Sources: {msg.sources.join(", ")}
+                  </p>
+                )}
+                {msg.escalation && (
+                  <p className="text-xs text-destructive font-medium mt-1">
+                    This may require manager involvement.
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
         ))}
 
         {loading && (

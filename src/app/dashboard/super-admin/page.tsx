@@ -2,6 +2,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { InviteForm } from "./invite-form"
+import { BusinessRow } from "./business-row"
+import { CreateBusinessForm } from "./create-business-form"
 
 export default async function SuperAdminDashboard() {
   const supabase = await createServerSupabaseClient()
@@ -26,6 +28,25 @@ export default async function SuperAdminDashboard() {
     .from("usage_tracking")
     .select("tenant_id, question_count, escalation_count, month")
 
+  const { data: allTokens } = await supabase
+    .from("business_access_tokens")
+    .select("id, tenant_id, token, label, is_active")
+
+  const tokenMap = new Map<string, { id: string; tenant_id: string; token: string; label: string; is_active: boolean }>()
+  if (allTokens) {
+    allTokens.forEach((t) => {
+      if (!tokenMap.has(t.tenant_id)) {
+        tokenMap.set(t.tenant_id, {
+          id: t.id,
+          tenant_id: t.tenant_id,
+          token: t.token,
+          label: t.label,
+          is_active: t.is_active,
+        })
+      }
+    })
+  }
+
   const stats = {
     total_businesses: tenants?.length || 0,
     active_businesses: tenants?.filter((t) => t.is_active).length || 0,
@@ -37,7 +58,13 @@ export default async function SuperAdminDashboard() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-4 items-center">
+          <Link
+            href="/dashboard/super-admin/conversations"
+            className="text-sm text-primary hover:underline"
+          >
+            Conversation Logs
+          </Link>
           <Link
             href="/api/auth/logout"
             className="text-sm text-muted-foreground hover:text-foreground"
@@ -66,9 +93,12 @@ export default async function SuperAdminDashboard() {
         </div>
       </div>
 
-      {tenants && tenants.length > 0 && (
-        <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} />
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CreateBusinessForm />
+        {tenants && tenants.length > 0 && (
+          <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} />
+        )}
+      </div>
 
       <div>
         <h2 className="text-lg font-semibold mb-3">All Businesses</h2>
@@ -80,34 +110,22 @@ export default async function SuperAdminDashboard() {
                 <th className="text-left px-4 py-2 font-medium">Slug</th>
                 <th className="text-left px-4 py-2 font-medium">Status</th>
                 <th className="text-left px-4 py-2 font-medium">Usage Limit</th>
+                <th className="text-left px-4 py-2 font-medium">Access</th>
+                <th className="text-left px-4 py-2 font-medium">Actions</th>
                 <th className="text-left px-4 py-2 font-medium">Created</th>
               </tr>
             </thead>
             <tbody>
               {tenants?.map((tenant) => (
-                <tr key={tenant.id} className="border-t">
-                  <td className="px-4 py-2">{tenant.name}</td>
-                  <td className="px-4 py-2 text-muted-foreground">{tenant.slug}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        tenant.is_active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {tenant.is_active ? "Active" : "Disabled"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">{tenant.usage_limit_monthly}/mo</td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {new Date(tenant.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
+                <BusinessRow
+                  key={tenant.id}
+                  tenant={tenant}
+                  accessToken={tokenMap.get(tenant.id) || null}
+                />
               ))}
               {(!tenants || tenants.length === 0) && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                     No businesses yet. Create your first business to get started.
                   </td>
                 </tr>

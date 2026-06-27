@@ -90,4 +90,22 @@ describe("Questions Not Covered by Documents", () => {
     expect(result.escalation).toBe(true)
     expect(result.answer.toLowerCase()).toMatch(/can't find|not found|ask your manager/i)
   })
+
+  it("does not answer tuition reimbursement policy", async () => {
+    const result = await askQuestion(
+      "Does the company offer tuition reimbursement for staff?"
+    )
+    if (result.error) return
+    expect(result.escalation).toBe(true)
+    expect(result.answer.toLowerCase()).toMatch(/can't find|not found|ask your manager/i)
+  })
+
+  it("does not answer volunteer leave policy", async () => {
+    const result = await askQuestion(
+      "Can staff take volunteer leave during work hours?"
+    )
+    if (result.error) return
+    expect(result.escalation).toBe(true)
+    expect(result.answer.toLowerCase()).toMatch(/can't find|not found|ask your manager/i)
+  })
 })

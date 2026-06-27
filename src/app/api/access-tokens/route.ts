@@ -60,6 +60,57 @@ export async function POST(request: Request) {
   }
 }
 
+export async function GET(request: Request) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role, tenant_id")
+      .eq("id", user.id)
+      .single()
+
+    if (!profile || (profile.role !== "super_admin" && profile.role !== "client_admin")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const tenantId = searchParams.get("tenant_id") || profile.tenant_id
+
+    if (profile.role === "client_admin" && tenantId !== profile.tenant_id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const admin = createAdminClient()
+    let query = admin
+      .from("business_access_tokens")
+      .select("id, tenant_id, token, label, is_active, expires_at, pin_code, created_at, updated_at")
+      .eq("tenant_id", tenantId)
+
+    const { data: tokens, error } = await query.order("created_at", { ascending: false })
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Failed to fetch access tokens" },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ access_tokens: tokens })
+  } catch (error) {
+    console.error("List tokens error:", error)
+    return NextResponse.json(
+      { error: "An error occurred" },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PATCH(request: Request) {
   try {
     const supabase = await createServerSupabaseClient()

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { ensureDocumentsBucket } from "@/lib/documents"
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient()
+    await ensureDocumentsBucket()
     const fileExt = file.name.split(".").pop()
     const filePath = `${tenantId}/${crypto.randomUUID()}.${fileExt}`
 

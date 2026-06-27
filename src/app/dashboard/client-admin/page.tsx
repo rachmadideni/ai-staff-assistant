@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { StaffAccessCard } from "../staff-access-card"
 
 export default async function ClientAdminDashboard() {
   const supabase = await createServerSupabaseClient()
@@ -54,12 +55,20 @@ export default async function ClientAdminDashboard() {
           <h1 className="text-2xl font-bold">{tenant?.name}</h1>
           <p className="text-sm text-muted-foreground">Client Admin Dashboard</p>
         </div>
-        <Link
-          href="/api/auth/logout"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Sign out
-        </Link>
+        <div className="flex gap-4 items-center">
+          <Link
+            href="/dashboard/client-admin/conversations"
+            className="text-sm text-primary hover:underline"
+          >
+            Conversation Logs
+          </Link>
+          <Link
+            href="/api/auth/logout"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Sign out
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -79,14 +88,20 @@ export default async function ClientAdminDashboard() {
         </div>
       </div>
 
-      {staffUrl && (
-        <div className="rounded-lg border p-4 space-y-2">
-          <h2 className="font-semibold">Staff Access Link</h2>
-          <p className="text-sm text-muted-foreground break-all">{staffUrl}</p>
-          {accessToken?.is_active === false && (
-            <p className="text-sm text-destructive">Staff access is disabled</p>
-          )}
+      {usage && tenant && (usage.question_count / tenant.usage_limit_monthly) >= 0.8 && (
+        <div className="rounded-lg border border-amber-500 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-800">
+            Usage Warning: {usage.question_count} of {tenant.usage_limit_monthly} questions used this month (
+            {Math.round((usage.question_count / tenant.usage_limit_monthly) * 100)}%).
+            {usage.question_count >= tenant.usage_limit_monthly
+              ? " Staff questions are now blocked until next month."
+              : " Staff may be blocked from asking questions soon."}
+          </p>
         </div>
+      )}
+
+      {accessToken && (
+        <StaffAccessCard accessToken={accessToken} tenantName={tenant?.name || ""} />
       )}
 
       <div>

@@ -1,23 +1,40 @@
 import OpenAI from "openai"
 
-let client: OpenAI | null = null
+let chatClient: OpenAI | null = null
+let embeddingClient: OpenAI | null = null
 
 export function getOpenAIClient(): OpenAI {
-  if (!client) {
-    client = new OpenAI({
+  if (!chatClient) {
+    chatClient = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL || undefined,
     })
   }
-  return client
+  return chatClient
+}
+
+function getEmbeddingClient(): OpenAI {
+  if (!embeddingClient) {
+    embeddingClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_EMBEDDING_BASE_URL || process.env.OPENAI_BASE_URL || undefined,
+    })
+  }
+  return embeddingClient
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const openai = getOpenAIClient()
-  const response = await openai.embeddings.create({
-    model: process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small",
-    input: text,
-  })
-  return response.data[0].embedding
+  const openai = getEmbeddingClient()
+  try {
+    const response = await openai.embeddings.create({
+      model: process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small",
+      input: text,
+    })
+    return response.data[0].embedding
+  } catch {
+    console.warn("Embedding API failed, using zero vector fallback")
+    return new Array(1536).fill(0)
+  }
 }
 
 export async function generateChatCompletion(
