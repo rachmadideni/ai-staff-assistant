@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 export function InviteForm({ tenants }: { tenants: { id: string; name: string }[] }) {
   const [email, setEmail] = useState("")
@@ -15,9 +16,16 @@ export function InviteForm({ tenants }: { tenants: { id: string; name: string }[
     setMessage(null)
     setError(null)
 
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`
+    }
+
     const res = await fetch("/api/auth/invite", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ email, tenant_id: tenantId }),
     })
 

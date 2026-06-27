@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import type { User } from "@supabase/supabase-js"
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies()
@@ -22,4 +23,20 @@ export async function createServerSupabaseClient() {
       },
     }
   )
+}
+
+export async function getAuthUser(request?: Request): Promise<User | null> {
+  const supabase = await createServerSupabaseClient()
+
+  if (request) {
+    const authHeader = request.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.slice(7)
+      const { data: { user } } = await supabase.auth.getUser(token)
+      if (user) return user
+    }
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
