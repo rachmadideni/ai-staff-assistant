@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
 export default function ResetPasswordPage() {
@@ -11,9 +11,14 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
+    if (searchParams.get("recovery") === "true") {
+      setReady(true)
+      return
+    }
     supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setReady(true)
@@ -23,7 +28,7 @@ export default function ResetPasswordPage() {
     if (hashParams.get("type") === "recovery") {
       setReady(true)
     }
-  }, [supabase.auth])
+  }, [supabase.auth, searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
