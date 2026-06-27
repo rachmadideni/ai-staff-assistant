@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { createServerSupabaseClient, getAuthUser } from "@/lib/supabase/server"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
 
 export async function POST(request: Request) {
   try {
-    const user = await getAuthUser(request)
+    const supabase = await createServerSupabaseClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized - no session" }, { status: 401 })
     }
 
-    const supabase = await createServerSupabaseClient()
     const { data: profile } = await supabase
       .from("users")
       .select("role")

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { inviteClientAdmin } from "./actions"
 
 export function InviteForm({ tenants }: { tenants: { id: string; name: string }[] }) {
   const [email, setEmail] = useState("")
@@ -16,28 +16,15 @@ export function InviteForm({ tenants }: { tenants: { id: string; name: string }[
     setMessage(null)
     setError(null)
 
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    const headers: Record<string, string> = { "Content-Type": "application/json" }
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`
-    }
+    const result = await inviteClientAdmin({ email, tenant_id: tenantId })
 
-    const res = await fetch("/api/auth/invite", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ email, tenant_id: tenantId }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      setError(data.error || "Failed to invite user")
+    if (result.error) {
+      setError(result.error)
       setLoading(false)
       return
     }
 
-    setMessage(`Invited ${email}. Temporary password: ${data.temporary_password}`)
+    setMessage(`Invited ${email}. Temporary password: ${result.temporary_password}`)
     setEmail("")
     setTenantId("")
     setLoading(false)
