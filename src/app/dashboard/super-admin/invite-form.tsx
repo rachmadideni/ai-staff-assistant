@@ -30,7 +30,7 @@ export function InviteForm({ tenants, authPayload }: { tenants: { id: string; na
         return
       }
 
-      setMessage(`Invited ${email}. Temporary password: ${data.temporary_password}`)
+      setMessage(`Invitation email sent to ${email}`)
       setEmail("")
       setTenantId("")
     } catch {

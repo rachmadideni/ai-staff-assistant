@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const { data: authUser, error: createError } = await admin.auth.admin.createUser({
       email,
       password: tempPassword,
-      email_confirm: true,
+      email_confirm: false,
     })
 
     if (createError) {
@@ -66,7 +66,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: "Invitation sent",
       user: { id: authUser.user.id, email },
-      temporary_password: tempPassword,
     }, { status: 201 })
   } catch (error) {
     console.error("Invite user error:", error)
