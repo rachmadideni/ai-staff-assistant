@@ -1,3 +1,4 @@
+import { createHmac } from "crypto"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
@@ -11,9 +12,6 @@ export default async function SuperAdminDashboard() {
 
   if (!user) redirect("/login")
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const accessToken = session?.access_token
-
   const { data: profile } = await supabase
     .from("users")
     .select("role")
@@ -21,6 +19,10 @@ export default async function SuperAdminDashboard() {
     .single()
 
   if (profile?.role !== "super_admin") redirect("/dashboard/client-admin")
+
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  const signature = createHmac("sha256", secret).update(user.id).digest("hex")
+  const authPayload = JSON.stringify({ userId: user.id, signature })
 
   const { data: tenants } = await supabase
     .from("tenants")
@@ -99,7 +101,7 @@ export default async function SuperAdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CreateBusinessForm />
         {tenants && tenants.length > 0 && (
-          <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} accessToken={accessToken || ""} />
+          <InviteForm tenants={tenants.map(t => ({ id: t.id, name: t.name }))} authPayload={authPayload} />
         )}
       </div>
 

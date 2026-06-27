@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-export function InviteForm({ tenants, accessToken }: { tenants: { id: string; name: string }[]; accessToken: string }) {
+export function InviteForm({ tenants, authPayload }: { tenants: { id: string; name: string }[]; authPayload: string }) {
   const [email, setEmail] = useState("")
   const [tenantId, setTenantId] = useState("")
   const [message, setMessage] = useState<string | null>(null)
@@ -15,20 +15,11 @@ export function InviteForm({ tenants, accessToken }: { tenants: { id: string; na
     setMessage(null)
     setError(null)
 
-    if (!accessToken) {
-      setError("No active session. Please sign in again.")
-      setLoading(false)
-      return
-    }
-
     try {
       const res = await fetch("/api/auth/invite", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ email, tenant_id: tenantId }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, tenant_id: tenantId, authPayload }),
       })
 
       const data = await res.json()
