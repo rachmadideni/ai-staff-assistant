@@ -24,14 +24,10 @@ async function extractTextFromFile(
 
   if (fileType === "pdf") {
     const { PDFParse } = await import("pdf-parse")
-    const parser = new (PDFParse as any)({ data: buffer })
-    await (parser as any).load()
-    const pageCount = (parser as any).doc?.numPages || 0
-    let text = ""
-    for (let i = 1; i <= pageCount; i++) {
-      const pageText = await (parser as any).getText(i)
-      if (pageText) text += pageText + "\n"
-    }
+    const parser = new PDFParse({ data: buffer })
+    const result = await parser.getText()
+    const text = result.text || ""
+    parser.destroy()
     return text
   } else if (fileType === "docx") {
     const mammoth = await import("mammoth")

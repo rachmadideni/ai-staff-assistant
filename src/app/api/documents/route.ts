@@ -126,9 +126,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ document: doc }, { status: 201 })
   } catch (error) {
-    console.error("Document upload error:", error)
+    const message = error instanceof Error ? error.message : "An error occurred uploading the document"
+    console.error("Document upload error:", message)
     return NextResponse.json(
-      { error: "An error occurred uploading the document" },
+      { error: message },
       { status: 500 }
     )
   }
@@ -194,9 +195,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ documents })
   } catch (error) {
-    console.error("Document list error:", error)
+    const message = error instanceof Error ? error.message : "An error occurred"
+    console.error("Document list error:", message)
     return NextResponse.json(
-      { error: "An error occurred" },
+      { error: message },
       { status: 500 }
     )
   }

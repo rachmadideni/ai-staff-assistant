@@ -88,9 +88,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
   } catch (error) {
-    console.error("Document update error:", error)
+    const message = error instanceof Error ? error.message : "An error occurred"
+    console.error("Document update error:", message)
     return NextResponse.json(
-      { error: "An error occurred" },
+      { error: message },
       { status: 500 }
     )
   }
@@ -146,9 +147,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Document delete error:", error)
+    const message = error instanceof Error ? error.message : "An error occurred"
+    console.error("Document delete error:", message)
     return NextResponse.json(
-      { error: "An error occurred" },
+      { error: message },
       { status: 500 }
     )
   }
