@@ -211,7 +211,19 @@ export function ConversationLogs({ isSuperAdmin }: Props) {
     let cancelled = false
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
+      let session = (await supabase.auth.getSession()).data.session
+
+      if (!session) {
+        await new Promise((r) => setTimeout(r, 300))
+        session = (await supabase.auth.getSession()).data.session
+      }
+
+      let user = session?.user ?? null
+      if (!user) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        user = u
+      }
+
       if (!user) {
         router.push("/login")
         return
@@ -240,10 +252,6 @@ export function ConversationLogs({ isSuperAdmin }: Props) {
       let convoQuery = supabase
         .from("conversations")
         .select("id, tenant_id, session_id, question, answer, sources, escalation_flag, token_count, created_at")
-
-      if (!isSuperAdmin && profile.tenant_id) {
-        convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
-      }
 
       if (!isSuperAdmin && profile.tenant_id) {
         convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
