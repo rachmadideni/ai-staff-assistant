@@ -392,6 +392,23 @@
         "Troubleshooting section for common issues"
       ],
       "passes": true
+    },
+    {
+      "id": 30,
+      "milestone": 6,
+      "title": "Document upload UI for Client Admin",
+      "description": "Build upload form and document management UI in the Client Admin dashboard. Users can upload PDF, DOCX, TXT, MD files. Show document list with status (draft/approved/archived). Allow approve/archive/delete actions. Integrate with existing POST /api/documents and PATCH /api/documents/[id] endpoints.",
+      "checks": [
+        "Upload form accepts file and calls POST /api/documents",
+        "File type validation shows error for unsupported types",
+        "File size validation (max 10MB) shows error for oversized files",
+        "Upload progress shown during upload",
+        "Document list shows filename, status, and upload date",
+        "Client admin can approve, archive, delete their own documents",
+        "Super admin can manage documents for any business",
+        "Status changes reflected immediately in the list"
+      ],
+      "passes": false
     }
   ],
   "milestones": {
