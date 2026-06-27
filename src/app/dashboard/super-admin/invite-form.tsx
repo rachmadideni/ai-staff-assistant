@@ -18,13 +18,13 @@ export function InviteForm({ tenants }: { tenants: { id: string; name: string }[
 
     const result = await inviteClientAdmin({ email, tenant_id: tenantId })
 
-    if (result.error) {
-      setError(result.error)
+    if (!result || result.error) {
+      setError(result?.error || "Failed to invite user")
       setLoading(false)
       return
     }
 
-    setMessage(`Invited ${email}. Temporary password: ${result.temporary_password}`)
+    setMessage(`Invited ${email}. Temporary password: ${result?.temporary_password || "N/A"}`)
     setEmail("")
     setTenantId("")
     setLoading(false)
