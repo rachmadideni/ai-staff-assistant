@@ -1,25 +1,35 @@
 "use server"
 
 import { randomUUID } from "crypto"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function inviteClientAdmin({
   email,
   tenant_id,
+  accessToken,
 }: {
   email: string
   tenant_id: string
+  accessToken: string
 }) {
   try {
-    const supabase = await createServerSupabaseClient()
+    if (!email || !tenant_id) {
+      return { error: "Email and tenant_id are required" }
+    }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    if (!accessToken) {
       return { error: "Unauthorized" }
     }
 
-    const { data: profile } = await supabase
+    const admin = createAdminClient()
+
+    const { data: { user }, error: userError } = await admin.auth.getUser(accessToken)
+
+    if (userError || !user) {
+      return { error: "Unauthorized" }
+    }
+
+    const { data: profile } = await admin
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -28,12 +38,6 @@ export async function inviteClientAdmin({
     if (!profile || profile.role !== "super_admin") {
       return { error: "Forbidden" }
     }
-
-    if (!email || !tenant_id) {
-      return { error: "Email and tenant_id are required" }
-    }
-
-    const admin = createAdminClient()
 
     const tempPassword = randomUUID().slice(0, 16)
 
