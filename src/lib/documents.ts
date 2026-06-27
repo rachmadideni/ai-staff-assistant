@@ -23,12 +23,14 @@ async function extractTextFromFile(
   const buffer = Buffer.from(await data.arrayBuffer())
 
   if (fileType === "pdf") {
+    const pdfParseModule = await import("pdf-parse")
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
+    pdfjs.GlobalWorkerOptions.workerSrc = ""
     if (typeof globalThis.DOMMatrix === "undefined") {
       const CSSMatrix = (await import("dommatrix")).default
       ;(globalThis as any).DOMMatrix = CSSMatrix
     }
-    const { PDFParse } = await import("pdf-parse")
-    const parser = new PDFParse({ data: buffer })
+    const parser = new pdfParseModule.PDFParse({ data: buffer })
     const result = await parser.getText()
     const text = result.text || ""
     parser.destroy()
