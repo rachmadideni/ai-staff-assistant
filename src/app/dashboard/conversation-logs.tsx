@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 
 interface Conversation {
   id: string
@@ -26,15 +26,36 @@ interface Props {
   currentTenantId?: string
 }
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString("en-AU", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
+}
+
 export function ConversationLogs({ conversations, tenants, isSuperAdmin, currentTenantId }: Props) {
   const [filterTenant, setFilterTenant] = useState(isSuperAdmin ? "all" : currentTenantId || "all")
   const [escalationOnly, setEscalationOnly] = useState(false)
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+  const [search, setSearch] = useState("")
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   const tenantMap = new Map(tenants.map((t) => [t.id, t.name]))
 
   const filtered = conversations.filter((c) => {
     if (filterTenant !== "all" && c.tenant_id !== filterTenant) return false
     if (escalationOnly && !c.escalation_flag) return false
+    if (dateFrom && new Date(c.created_at) < new Date(dateFrom)) return false
+    if (dateTo) {
+      const end = new Date(dateTo)
+      end.setDate(end.getDate() + 1)
+      if (new Date(c.created_at) > end) return false
+    }
+    if (search) {
+      const q = search.toLowerCase()
+      if (!c.question.toLowerCase().includes(q) && !c.answer.toLowerCase().includes(q)) return false
+    }
     return true
   })
 
@@ -53,7 +74,28 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
             ))}
           </select>
         )}
-        <label className="flex items-center gap-2 text-sm">
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+          title="From date"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+          title="To date"
+        />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search questions & answers..."
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-[200px]"
+        />
+        <label className="flex items-center gap-2 text-sm whitespace-nowrap">
           <input
             type="checkbox"
             checked={escalationOnly}
@@ -73,7 +115,6 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
             <tr>
               {isSuperAdmin && <th className="text-left px-4 py-2 font-medium">Business</th>}
               <th className="text-left px-4 py-2 font-medium">Question</th>
-              <th className="text-left px-4 py-2 font-medium">Answer</th>
               <th className="text-left px-4 py-2 font-medium">Escalated</th>
               <th className="text-left px-4 py-2 font-medium">Tokens</th>
               <th className="text-left px-4 py-2 font-medium">Date</th>
@@ -81,32 +122,63 @@ export function ConversationLogs({ conversations, tenants, isSuperAdmin, current
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <tr key={c.id} className="border-t">
-                {isSuperAdmin && (
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {tenantMap.get(c.tenant_id) || "Unknown"}
-                  </td>
-                )}
-                <td className="px-4 py-2 max-w-xs truncate">{c.question}</td>
-                <td className="px-4 py-2 max-w-xs truncate">{c.answer}</td>
-                <td className="px-4 py-2">
-                  {c.escalation_flag ? (
-                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                      Yes
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">No</span>
+              <Fragment key={c.id}>
+                <tr
+                  className="border-t cursor-pointer hover:bg-muted/50"
+                  onClick={() => setExpanded(expanded === c.id ? null : c.id)}
+                >
+                  {isSuperAdmin && (
+                    <td className="px-4 py-2 text-muted-foreground">
+                      {tenantMap.get(c.tenant_id) || "Unknown"}
+                    </td>
                   )}
-                </td>
-                <td className="px-4 py-2 text-muted-foreground">{c.token_count}</td>
-                <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">
-                  {new Date(c.created_at).toLocaleDateString()}
-                </td>
-              </tr>
+                  <td className="px-4 py-2 max-w-xs truncate">{c.question}</td>
+                  <td className="px-4 py-2">
+                    {c.escalation_flag ? (
+                      <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                        Yes
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">No</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-muted-foreground">{c.token_count}</td>
+                  <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">
+                    {formatDate(c.created_at)}
+                  </td>
+                </tr>
+                {expanded === c.id && (
+                    <tr>
+                        <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-3 bg-muted/30 space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Question</p>
+                        <p className="text-sm whitespace-pre-wrap">{c.question}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Answer</p>
+                        <p className="text-sm whitespace-pre-wrap">{c.answer}</p>
+                      </div>
+                      {c.sources && c.sources.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Sources</p>
+                          <ul className="list-disc list-inside text-sm">
+                            {c.sources.map((s, i) => (
+                              <li key={i}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Session: {c.session_id} &middot; {formatDate(c.created_at)}
+                      </p>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={isSuperAdmin ? 6 : 5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={isSuperAdmin ? 5 : 4} className="px-4 py-8 text-center text-muted-foreground">
                   No conversations found.
                 </td>
               </tr>
