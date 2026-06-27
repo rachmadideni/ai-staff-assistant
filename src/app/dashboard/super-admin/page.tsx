@@ -1,5 +1,5 @@
 import { createHmac } from "crypto"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createServerComponentClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { InviteForm } from "./invite-form"
@@ -7,7 +7,7 @@ import { BusinessRow } from "./business-row"
 import { CreateBusinessForm } from "./create-business-form"
 
 export default async function SuperAdminDashboard() {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createServerComponentClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect("/login")

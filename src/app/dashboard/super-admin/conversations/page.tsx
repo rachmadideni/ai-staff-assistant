@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createServerComponentClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ConversationLogs } from "../../conversation-logs"
@@ -6,7 +6,7 @@ import { ConversationLogs } from "../../conversation-logs"
 export const dynamic = "force-dynamic"
 
 export default async function SuperAdminConversations() {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createServerComponentClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect("/login")

@@ -1,12 +1,12 @@
 import { createHmac } from "crypto"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createServerComponentClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { StaffAccessCard } from "../staff-access-card"
 import { DocumentManager } from "./document-manager"
 
 export default async function ClientAdminDashboard() {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createServerComponentClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect("/login")

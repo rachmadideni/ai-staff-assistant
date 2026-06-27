@@ -25,6 +25,25 @@ export async function createServerSupabaseClient() {
   )
 }
 
+export async function createServerComponentClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll() {
+          /* no-op: middleware handles cookie refresh */
+        },
+      },
+    }
+  )
+}
+
 export async function getAuthUser(request?: Request): Promise<User | null> {
   const supabase = await createServerSupabaseClient()
 
