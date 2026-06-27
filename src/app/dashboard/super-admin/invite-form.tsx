@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { inviteClientAdmin } from "./actions"
 
 export function InviteForm({ tenants, accessToken }: { tenants: { id: string; name: string }[]; accessToken: string }) {
   const [email, setEmail] = useState("")
@@ -22,21 +21,31 @@ export function InviteForm({ tenants, accessToken }: { tenants: { id: string; na
       return
     }
 
-    const result = await inviteClientAdmin({
-      email,
-      tenant_id: tenantId,
-      accessToken,
-    })
+    try {
+      const res = await fetch("/api/auth/invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ email, tenant_id: tenantId }),
+      })
 
-    if (!result || result.error) {
-      setError(result?.error || "Failed to invite user")
-      setLoading(false)
-      return
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Failed to invite user")
+        setLoading(false)
+        return
+      }
+
+      setMessage(`Invited ${email}. Temporary password: ${data.temporary_password}`)
+      setEmail("")
+      setTenantId("")
+    } catch {
+      setError("Network error. Please try again.")
     }
 
-    setMessage(`Invited ${email}. Temporary password: ${result.temporary_password}`)
-    setEmail("")
-    setTenantId("")
     setLoading(false)
   }
 
