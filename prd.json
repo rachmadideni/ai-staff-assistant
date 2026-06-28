@@ -552,7 +552,7 @@
         "conversation-logs.tsx selects specific columns",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 42,

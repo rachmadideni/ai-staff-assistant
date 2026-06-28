@@ -31,7 +31,7 @@ export default async function SuperAdminDashboard() {
 
   const { data: tenants } = await supabase
     .from("tenants")
-    .select("*")
+    .select("id, name, slug, is_active, usage_limit_monthly, created_at")
     .order("created_at", { ascending: false })
 
   const { data: usage } = await supabase

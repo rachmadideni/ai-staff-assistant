@@ -27,25 +27,25 @@ export default async function ClientAdminDashboard() {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("*")
+    .select("id, name, usage_limit_monthly")
     .eq("id", profile.tenant_id)
     .single()
 
   const { data: accessTokens } = await supabase
     .from("business_access_tokens")
-    .select("*")
+    .select("id, tenant_id, token, label, is_active, pin_code, expires_at, created_at")
     .eq("tenant_id", profile.tenant_id)
 
   const { data: documents } = await supabase
     .from("documents")
-    .select("*")
+    .select("id, filename, status, created_at, file_type, file_size")
     .eq("tenant_id", profile.tenant_id)
     .order("created_at", { ascending: false })
     .limit(50)
 
   const { data: usage } = await supabase
     .from("usage_tracking")
-    .select("*")
+    .select("question_count, escalation_count")
     .eq("tenant_id", profile.tenant_id)
     .eq("month", new Date().toISOString().slice(0, 7))
     .single()
