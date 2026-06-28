@@ -490,7 +490,7 @@
         "IVFFlat lists parameter reviewed for data size",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     }
   ],
   "milestones": {
