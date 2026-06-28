@@ -36,3 +36,4 @@
 [2026-06-28] story-32: Separate HMAC secret from service role key | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-33: Restrict SECURITY DEFINER function access | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-34: Fix storage SELECT policy tenant scoping | pass | Manually verified — typecheck + tests pass
+[2026-06-28] story-35: Fix usage tracking token_count accumulation | pass | Manually verified — typecheck + tests pass

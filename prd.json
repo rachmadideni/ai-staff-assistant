@@ -477,7 +477,7 @@
         "escalation_count still increments correctly",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 36,

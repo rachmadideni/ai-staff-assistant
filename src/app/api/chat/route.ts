@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const currentMonth = new Date().toISOString().slice(0, 7)
     const { data: currentUsage } = await supabase
       .from("usage_tracking")
-      .select("question_count, escalation_count")
+      .select("question_count, escalation_count, token_count")
       .eq("tenant_id", tenant.id)
       .eq("month", currentMonth)
       .single()
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
         month: currentMonth,
         question_count: (currentUsage?.question_count || 0) + 1,
         escalation_count: (currentUsage?.escalation_count || 0) + (isEscalation ? 1 : 0),
-        token_count: tokenCount,
+        token_count: (currentUsage?.token_count || 0) + tokenCount,
       },
       { onConflict: "tenant_id,month" }
     )
