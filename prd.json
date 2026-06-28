@@ -409,6 +409,88 @@
         "Status changes reflected immediately in the list"
       ],
       "passes": true
+    },
+    {
+      "id": 31,
+      "milestone": 8,
+      "title": "Fix deprecated auth.role() in storage policies",
+      "description": "Replace deprecated auth.role() = 'authenticated' with TO authenticated clause in storage RLS policies. The auth.role() function is deprecated and breaks silently when anonymous sign-ins are enabled.",
+      "checks": [
+        "Storage INSERT policy uses TO authenticated instead of auth.role()",
+        "Storage SELECT policy uses TO authenticated instead of auth.role()",
+        "Storage DELETE policy uses TO authenticated instead of auth.role()",
+        "All storage policies still enforce tenant scoping for client_admin",
+        "Typecheck passes after migration"
+      ],
+      "passes": true
+    },
+    {
+      "id": 32,
+      "milestone": 8,
+      "title": "Separate HMAC secret from service role key",
+      "description": "Use a dedicated HMAC_SECRET env var instead of SUPABASE_SERVICE_ROLE_KEY for HMAC signing. Remove authPayload from URL query strings (documents GET route) to prevent token leakage in server logs.",
+      "checks": [
+        "HMAC_SECRET env var added to .env.local.example",
+        "auth-utils.ts uses HMAC_SECRET instead of SUPABASE_SERVICE_ROLE_KEY",
+        "invite/route.ts uses HMAC_SECRET instead of SUPABASE_SERVICE_ROLE_KEY",
+        "documents GET route accepts authPayload in request body or header, not query string",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 33,
+      "milestone": 8,
+      "title": "Restrict SECURITY DEFINER function access",
+      "description": "Revoke PUBLIC EXECUTE from verify_access_pin to prevent brute-force PIN attacks. Grant EXECUTE only to specific roles (anon). validate_access_token and match_document_chunks should also have restricted access.",
+      "checks": [
+        "REVOKE EXECUTE ON FUNCTION verify_access_pin FROM PUBLIC",
+        "GRANT EXECUTE ON FUNCTION verify_access_pin TO anon",
+        "REVOKE EXECUTE ON FUNCTION validate_access_token FROM PUBLIC",
+        "GRANT EXECUTE ON FUNCTION validate_access_token TO anon",
+        "Functions still work via Supabase RPC calls",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 34,
+      "milestone": 8,
+      "title": "Fix storage SELECT policy tenant scoping",
+      "description": "The storage SELECT policy currently allows any authenticated user to read all files in the documents bucket. Add tenant folder scoping so client_admin can only read their own tenant's files.",
+      "checks": [
+        "Storage SELECT policy scopes client_admin to own tenant folder",
+        "Super admin can still read all files",
+        "Client admin cannot read other tenants' files via URL manipulation",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 35,
+      "milestone": 8,
+      "title": "Fix usage tracking token_count accumulation",
+      "description": "The chat API upserts usage_tracking with token_count set to the latest completion's count instead of accumulating. Fix to add new tokens to existing count.",
+      "checks": [
+        "token_count accumulates across questions in the same month",
+        "question_count still increments correctly",
+        "escalation_count still increments correctly",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 36,
+      "milestone": 8,
+      "title": "Add missing indexes and optimize vector search",
+      "description": "Add created_at indexes on conversations and audit_logs for date-range queries. Consider HNSW index instead of IVFFlat for better vector search performance. Add PIN hash index for verify_access_pin lookups.",
+      "checks": [
+        "created_at index on conversations table",
+        "created_at index on audit_logs table",
+        "IVFFlat lists parameter reviewed for data size",
+        "Typecheck passes"
+      ],
+      "passes": false
     }
   ],
   "milestones": {
@@ -417,6 +499,7 @@
     "4": "Document Upload & Knowledge Base",
     "5": "Staff Chat Assistant",
     "6": "Admin Dashboards & Usage Logs",
-    "7": "Testing, Deployment & Handover"
+    "7": "Testing, Deployment & Handover",
+    "8": "Security Hardening"
   }
 }

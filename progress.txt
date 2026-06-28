@@ -32,3 +32,4 @@
 [2026-06-27] story-27: 50 test cases execution | pass | Manually verified — typecheck + tests pass
 [2026-06-27] story-28: Deploy to Vercel | pass | Manually verified — typecheck + tests pass
 [2026-06-27] story-29: Admin handover documentation | pass | Manually verified — typecheck + tests pass
+[2026-06-28] story-31: Fix deprecated auth.role() in storage policies | pass | Manually verified — typecheck + tests pass
