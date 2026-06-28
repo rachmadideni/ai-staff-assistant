@@ -210,81 +210,75 @@ export function ConversationLogs({ isSuperAdmin }: Props) {
     let cancelled = false
     const supabase = createClient()
 
-    async function load() {
-      let session = (await supabase.auth.getSession()).data.session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (cancelled) return
 
-      if (!session) {
-        await new Promise((r) => setTimeout(r, 300))
-        session = (await supabase.auth.getSession()).data.session
-      }
-
-      let user = session?.user ?? null
-      if (!user) {
-        const { data: { user: u } } = await supabase.auth.getUser()
-        user = u
-      }
-
-      if (!user) {
-        router.push("/login")
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role, tenant_id")
-        .eq("id", user.id)
-        .single()
-
-      if (!profile) {
-        router.push("/login")
-        return
-      }
-
-      if (isSuperAdmin && profile.role !== "super_admin") {
-        router.push("/dashboard/client-admin")
-        return
-      }
-      if (!isSuperAdmin && (profile.role !== "client_admin" || !profile.tenant_id)) {
-        router.push("/login")
-        return
-      }
-
-      let convoQuery = supabase
-        .from("conversations")
-        .select("id, tenant_id, session_id, question, answer, sources, escalation_flag, token_count, created_at")
-
-      if (!isSuperAdmin && profile.tenant_id) {
-        convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
-      }
-
-      convoQuery = convoQuery.order("created_at", { ascending: false }).limit(200)
-
-      const [convoResult, tenantResult] = await Promise.all([
-        convoQuery,
-        isSuperAdmin
-          ? supabase.from("tenants").select("id, name").eq("is_active", true).order("name")
-          : profile.tenant_id
-            ? supabase.from("tenants").select("name").eq("id", profile.tenant_id).single()
-            : { data: null },
-      ])
-
-      if (cancelled) return
-
-      if (convoResult.data) setConversations(convoResult.data)
-      if (tenantResult.data) {
-        if (Array.isArray(tenantResult.data)) {
-          setTenants(tenantResult.data)
-        } else {
-          setTenantName(tenantResult.data.name)
-          setTenants([{ id: profile.tenant_id!, name: tenantResult.data.name }])
+        const user = session?.user ?? null
+        if (!user) {
+          router.push("/login")
+          return
         }
+
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role, tenant_id")
+          .eq("id", user.id)
+          .single()
+
+        if (!profile) {
+          router.push("/login")
+          return
+        }
+
+        if (isSuperAdmin && profile.role !== "super_admin") {
+          router.push("/dashboard/client-admin")
+          return
+        }
+        if (!isSuperAdmin && (profile.role !== "client_admin" || !profile.tenant_id)) {
+          router.push("/login")
+          return
+        }
+
+        let convoQuery = supabase
+          .from("conversations")
+          .select("id, tenant_id, session_id, question, answer, sources, escalation_flag, token_count, created_at")
+
+        if (!isSuperAdmin && profile.tenant_id) {
+          convoQuery = convoQuery.eq("tenant_id", profile.tenant_id)
+        }
+
+        convoQuery = convoQuery.order("created_at", { ascending: false }).limit(200)
+
+        const [convoResult, tenantResult] = await Promise.all([
+          convoQuery,
+          isSuperAdmin
+            ? supabase.from("tenants").select("id, name").eq("is_active", true).order("name")
+            : profile.tenant_id
+              ? supabase.from("tenants").select("name").eq("id", profile.tenant_id).single()
+              : { data: null },
+        ])
+
+        if (cancelled) return
+
+        if (convoResult.data) setConversations(convoResult.data)
+        if (tenantResult.data) {
+          if (Array.isArray(tenantResult.data)) {
+            setTenants(tenantResult.data)
+          } else {
+            setTenantName(tenantResult.data.name)
+            setTenants([{ id: profile.tenant_id!, name: tenantResult.data.name }])
+          }
+        }
+
+        setLoading(false)
       }
+    )
 
-      setLoading(false)
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
     }
-
-    load()
-    return () => { cancelled = true }
   }, [isSuperAdmin, router])
 
   if (loading) {
