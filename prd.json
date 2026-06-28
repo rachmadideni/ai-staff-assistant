@@ -605,6 +605,24 @@
         "Typecheck passes"
       ],
       "passes": true
+    },
+    {
+      "id": 47,
+      "milestone": 11,
+      "title": "Redesign landing page with Apple HIG",
+      "description": "Apply Apple Human Interface Guidelines to page.tsx: clean typography, proper spacing (8px grid), minimal shadows, left-aligned text, system fonts, dark mode support, no AI slop.",
+      "checks": [
+        "Uses system font stack (-apple-system)",
+        "8px grid spacing throughout",
+        "Maximum 3 colors per section",
+        "Left-aligned text (not centered paragraphs)",
+        "44px touch targets for buttons",
+        "Dark mode support with CSS variables",
+        "No gradient backgrounds",
+        "No excessive shadows",
+        "Typecheck passes"
+      ],
+      "passes": true
     }
   ],
   "milestones": {
@@ -616,6 +634,7 @@
     "7": "Testing, Deployment & Handover",
     "8": "Security Hardening",
     "9": "Next.js Hardening",
-    "10": "StoryBrand Messaging"
+    "10": "StoryBrand Messaging",
+    "11": "Apple HIG Design"
   }
 }

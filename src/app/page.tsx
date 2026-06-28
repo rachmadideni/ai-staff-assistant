@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { createServerComponentClient } from "@/lib/supabase/server"
 
 export const metadata = {
-  title: "Knowledge Base yang Mudah Ditemukan",
+  title: "[Nama Produk] — Knowledge Base yang Mudah Ditemukan",
   description:
     "Ubah dokumen yang tersebar menjadi knowledge base yang mudah dicari. Untuk admin, pengacara, legal consultant, dan profesional.",
 }
@@ -19,27 +19,27 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-black">
       {/* Hero Section */}
-      <section className="flex flex-1 items-center justify-center px-6 py-20">
-        <div className="max-w-3xl text-center space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="px-6 pt-20 pb-16 md:pt-32 md:pb-24">
+        <div className="max-w-[680px] mx-auto">
+          <h1 className="text-[28px] md:text-[34px] font-bold text-black dark:text-white leading-tight mb-4">
             Dokumen Anda, Selalu Siap Ditemukan
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5] leading-relaxed mb-8">
             Ubah dokumen yang tersebar menjadi knowledge base yang mudah dicari
             — untuk tim, admin, dan profesional.
           </p>
-          <div className="flex gap-4 justify-center pt-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="inline-flex items-center justify-center h-[44px] px-6 bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[17px] font-semibold rounded-lg hover:opacity-80 transition-opacity"
             >
               Mulai Gratis
             </Link>
             <Link
-              href="#fitur"
-              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              href="#cara-kerja"
+              className="inline-flex items-center justify-center h-[44px] px-6 text-[#007AFF] dark:text-[#0A84FF] text-[17px] font-normal hover:opacity-70 transition-opacity"
             >
               Pelajari Lebih Lanjut
             </Link>
@@ -48,129 +48,213 @@ export default async function HomePage() {
       </section>
 
       {/* Problem Section */}
-      <section className="border-t bg-muted/40 px-6 py-20">
-        <div className="max-w-3xl mx-auto space-y-12">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Masalah yang Anda Hadapi</h2>
-            <p className="text-muted-foreground">
-              Anda tidak sendirian. Ini yang dirasakan banyak profesional.
-            </p>
+      <section className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
+        <div className="max-w-[680px] mx-auto">
+          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-2">
+            Masalah yang Anda Hadapi
+          </h2>
+          <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5] mb-12">
+            Anda tidak sendirian. Ini yang dirasakan banyak profesional.
+          </p>
+
+          <div className="space-y-8">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#FF3B30]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Dokumen Tersebar
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  Dokumen ada di email, drive, folder bersama — susah ditemukan
+                  saat dibutuhkan.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#FF9500]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12,6 12,12 16,14" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Waktu Terbuang
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  Anda harus menelusuri banyak folder hanya untuk menemukan satu
+                  informasi.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#8E8E93]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Informasi Tersembunyi
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  Pengetahuan berharga terkunci di antara ratusan file yang sulit
+                  diakses.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-3">
-            <div className="space-y-3">
-              <div className="text-2xl">📂</div>
-              <h3 className="font-semibold">Dokumen Tersebar</h3>
-              <p className="text-sm text-muted-foreground">
-                Dokumen ada di email, drive, folder bersama — susah ditemukan
-                saat dibutuhkan.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <div className="text-2xl">😤</div>
-              <h3 className="font-semibold">Waktu Terbuang</h3>
-              <p className="text-sm text-muted-foreground">
-                Anda harus menelusuri banyak folder hanya untuk menemukan satu
-                informasi.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <div className="text-2xl">🔍</div>
-              <h3 className="font-semibold">Informasi Tersembunyi</h3>
-              <p className="text-sm text-muted-foreground">
-                Pengetahuan berharga terkunci di antara ratusan file yang sulit
-                diakses.
-              </p>
-            </div>
-          </div>
-
-          <p className="text-center text-lg font-medium">
+          <p className="text-[17px] font-medium text-black dark:text-white mt-12">
             Pengetahuan seharusnya mudah diakses, bukan tersembunyi.
           </p>
         </div>
       </section>
 
       {/* Guide Section */}
-      <section className="px-6 py-20">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold">Kami Paham Rasanya</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+      <section className="px-6 py-16">
+        <div className="max-w-[680px] mx-auto">
+          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-4">
+            Kami Paham Rasanya
+          </h2>
+          <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5] leading-relaxed mb-6">
             Kami juga pernah kehilangan waktu berjam-jam hanya untuk mencari satu
             informasi di antara puluhan dokumen. Itu sebabnya kami membangun
             solusi ini.
           </p>
-          <p className="text-muted-foreground">
+          <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5]">
             Sudah membantu perusahaan mengakses pengetahuan mereka{" "}
-            <span className="font-semibold text-foreground">10x lebih cepat</span>.
+            <span className="font-semibold text-black dark:text-white">10x lebih cepat</span>.
           </p>
         </div>
       </section>
 
       {/* Plan Section */}
-      <section id="fitur" className="border-t bg-muted/40 px-6 py-20">
-        <div className="max-w-3xl mx-auto space-y-12">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Cara Kerjanya</h2>
-            <p className="text-muted-foreground">
-              Tiga langkah sederhana untuk mengakses pengetahuan Anda.
-            </p>
-          </div>
+      <section id="cara-kerja" className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
+        <div className="max-w-[680px] mx-auto">
+          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-2">
+            Cara Kerjanya
+          </h2>
+          <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5] mb-12">
+            Tiga langkah sederhana untuk mengakses pengetahuan Anda.
+          </p>
 
-          <div className="grid gap-8 sm:grid-cols-3">
-            <div className="text-center space-y-3">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+          <div className="space-y-8">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
                 1
               </div>
-              <h3 className="font-semibold">Upload</h3>
-              <p className="text-sm text-muted-foreground">
-                Unggah dokumen Anda — PDF, Word, atau format lainnya.
-              </p>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Upload
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  Unggah dokumen Anda — PDF, Word, atau format lainnya.
+                </p>
+              </div>
             </div>
-            <div className="text-center space-y-3">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
                 2
               </div>
-              <h3 className="font-semibold">Pahami</h3>
-              <p className="text-sm text-muted-foreground">
-                AI kami mengindeks dan memahami konten secara otomatis.
-              </p>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Pahami
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  AI kami mengindeks dan memahami konten secara otomatis.
+                </p>
+              </div>
             </div>
-            <div className="text-center space-y-3">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
                 3
               </div>
-              <h3 className="font-semibold">Temukan</h3>
-              <p className="text-sm text-muted-foreground">
-                Cari informasi dengan percakapan natural, kapan saja.
-              </p>
+              <div>
+                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
+                  Temukan
+                </h3>
+                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                  Cari informasi dengan percakapan natural, kapan saja.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Success Section */}
-      <section className="px-6 py-20">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold">Bayangkan Setelah Anda Menggunakan</h2>
-          <div className="space-y-4 text-muted-foreground text-lg max-w-2xl mx-auto">
-            <p>✅ Semua pengetahuan terorganisir dan mudah diakses</p>
-            <p>✅ Tim fokus pada pekerjaan produktif, bukan pencarian dokumen</p>
-            <p>✅ Informasi selalu tersedia kapan saja dibutuhkan</p>
-            <p>✅ Anda bisa fokus pada keahlian, bukan administrasi</p>
+      <section className="px-6 py-16">
+        <div className="max-w-[680px] mx-auto">
+          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-8">
+            Bayangkan Setelah Anda Menggunakan
+          </h2>
+          <div className="space-y-4">
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-5 h-5 mt-0.5 text-[#34C759]">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                Semua pengetahuan terorganisir dan mudah diakses
+              </p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-5 h-5 mt-0.5 text-[#34C759]">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                Tim fokus pada pekerjaan produktif, bukan pencarian dokumen
+              </p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-5 h-5 mt-0.5 text-[#34C759]">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                Informasi selalu tersedia kapan saja dibutuhkan
+              </p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-5 h-5 mt-0.5 text-[#34C759]">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5]">
+                Anda bisa fokus pada keahlian, bukan administrasi
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="border-t bg-muted/40 px-6 py-20">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold">Siap Memulai?</h2>
-          <p className="text-muted-foreground">
+      <section className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
+        <div className="max-w-[680px] mx-auto">
+          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-4">
+            Siap Memulai?
+          </h2>
+          <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5] mb-8">
             Gratis untuk memulai. Tanpa kartu kredit. Setup 5 menit.
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center h-[44px] px-6 bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[17px] font-semibold rounded-lg hover:opacity-80 transition-opacity"
           >
             Mulai Gratis Sekarang
           </Link>
@@ -178,8 +262,8 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t px-6 py-8">
-        <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground">
+      <footer className="px-6 py-8 border-t border-[#C6C6C8] dark:border-[#38383A]">
+        <div className="max-w-[680px] mx-auto text-center text-[13px] text-[#8E8E93]">
           &copy; {new Date().getFullYear()} [Nama Produk]. All rights reserved.
         </div>
       </footer>
