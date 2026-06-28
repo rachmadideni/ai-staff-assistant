@@ -1,13 +1,20 @@
 "use client"
 
-import { BackgroundBeams } from "@/components/ui/background-beams"
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background"
 import { TypewriterEffect } from "@/components/ui/typewriter-effect"
 import Link from "next/link"
 
 export function LandingHero() {
   return (
     <section className="relative px-6 pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
-      <BackgroundBeams className="opacity-30" />
+      <DottedGlowBackground
+        className="absolute inset-0"
+        gap={14}
+        radius={1.5}
+        opacity={0.5}
+        glowColor="rgba(0, 122, 255, 0.6)"
+        darkGlowColor="rgba(10, 132, 255, 0.6)"
+      />
       <div className="relative z-10 max-w-[680px] mx-auto">
         <TypewriterEffect
           words={[
