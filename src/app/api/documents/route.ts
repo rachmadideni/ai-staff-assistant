@@ -5,8 +5,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { ensureDocumentsBucket } from "@/lib/documents"
 import { verifyHmac } from "@/lib/auth-utils"
 
-export const dynamic = "force-dynamic"
-
 const ALLOWED_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

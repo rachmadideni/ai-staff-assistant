@@ -527,7 +527,7 @@
         "Routes that read cookies/headers keep force-dynamic",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 40,

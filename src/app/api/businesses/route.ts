@@ -2,8 +2,6 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
-export const dynamic = "force-dynamic"
-
 export async function PATCH(request: Request) {
   try {
     const supabase = await createServerSupabaseClient()

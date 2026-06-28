@@ -4,8 +4,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { processDocument, reindexDocument } from "@/lib/documents"
 import { getAuthUser } from "@/lib/auth-utils"
 
-export const dynamic = "force-dynamic"
-
 async function lookupProfile(userId: string) {
   const admin = createAdminClient()
   const { data } = await admin

@@ -3,8 +3,6 @@ import { NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-export const dynamic = "force-dynamic"
-
 export async function POST(request: Request) {
   try {
     const { email, tenant_id, authPayload } = await request.json()
