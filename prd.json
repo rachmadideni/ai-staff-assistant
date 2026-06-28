@@ -577,6 +577,34 @@
         "Typecheck passes"
       ],
       "passes": true
+    },
+    {
+      "id": 45,
+      "milestone": 10,
+      "title": "Create StoryBrand messaging document",
+      "description": "Create STORYBRAND.md with one-liner, BrandScript (7 elements), target personas, and tagline options.",
+      "checks": [
+        "STORYBRAND.md exists with one-liner",
+        "BrandScript covers all 7 elements",
+        "Target personas defined",
+        "Tagline options included"
+      ],
+      "passes": true
+    },
+    {
+      "id": 46,
+      "milestone": 10,
+      "title": "Update landing page with StoryBrand copy",
+      "description": "Update page.tsx with StoryBrand-based copy: headline, subhead, problem section, guide section, plan, CTA, success picture.",
+      "checks": [
+        "Landing page uses StoryBrand messaging",
+        "Hero section has clear headline and CTA",
+        "Problem section addresses 3 levels",
+        "Plan section shows 3 steps",
+        "Success section paints transformation picture",
+        "Typecheck passes"
+      ],
+      "passes": true
     }
   ],
   "milestones": {
@@ -587,6 +615,7 @@
     "6": "Admin Dashboards & Usage Logs",
     "7": "Testing, Deployment & Handover",
     "8": "Security Hardening",
-    "9": "Next.js Hardening"
+    "9": "Next.js Hardening",
+    "10": "StoryBrand Messaging"
   }
 }
