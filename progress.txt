@@ -39,3 +39,4 @@
 [2026-06-28] story-35: Fix usage tracking token_count accumulation | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-36: Add missing indexes and optimize vector search | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-37: Fix HMAC key mismatch in dashboard pages | pass | Manually verified — typecheck + tests pass
+[2026-06-28] story-38: Add error boundaries and loading states | pass | Manually verified — typecheck + tests pass

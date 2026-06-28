@@ -515,7 +515,7 @@
         "error.tsx exists for staff chat page",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 39,
