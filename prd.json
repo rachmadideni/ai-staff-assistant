@@ -464,7 +464,7 @@
         "Client admin cannot read other tenants' files via URL manipulation",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 35,
