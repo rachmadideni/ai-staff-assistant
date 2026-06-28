@@ -1,6 +1,10 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createServerComponentClient } from "@/lib/supabase/server"
+import { LandingNavbar } from "@/components/landing/navbar"
+import { LandingHero } from "@/components/landing/hero"
+import { LandingBentoSteps } from "@/components/landing/bento-steps"
+import { LandingTestimonials } from "@/components/landing/testimonials"
 
 export const metadata = {
   title: "[Nama Produk] — Knowledge Base yang Mudah Ditemukan",
@@ -20,32 +24,9 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-black">
-      {/* Hero Section */}
-      <section className="px-6 pt-20 pb-16 md:pt-32 md:pb-24">
-        <div className="max-w-[680px] mx-auto">
-          <h1 className="text-[28px] md:text-[34px] font-bold text-black dark:text-white leading-tight mb-4">
-            Dokumen Anda, Selalu Siap Ditemukan
-          </h1>
-          <p className="text-[17px] text-[#3C3C43] dark:text-[#EBEBF5] leading-relaxed mb-8">
-            Ubah dokumen yang tersebar menjadi knowledge base yang mudah dicari
-            — untuk tim, admin, dan profesional.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center h-[44px] px-6 bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[17px] font-semibold rounded-lg hover:opacity-80 transition-opacity"
-            >
-              Mulai Gratis
-            </Link>
-            <Link
-              href="#cara-kerja"
-              className="inline-flex items-center justify-center h-[44px] px-6 text-[#007AFF] dark:text-[#0A84FF] text-[17px] font-normal hover:opacity-70 transition-opacity"
-            >
-              Pelajari Lebih Lanjut
-            </Link>
-          </div>
-        </div>
-      </section>
+      <LandingNavbar />
+
+      <LandingHero />
 
       {/* Problem Section */}
       <section className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
@@ -136,61 +117,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Plan Section */}
-      <section id="cara-kerja" className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
-        <div className="max-w-[680px] mx-auto">
-          <h2 className="text-[22px] md:text-[28px] font-bold text-black dark:text-white mb-2">
-            Cara Kerjanya
-          </h2>
-          <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5] mb-12">
-            Tiga langkah sederhana untuk mengakses pengetahuan Anda.
-          </p>
-
-          <div className="space-y-8">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
-                1
-              </div>
-              <div>
-                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
-                  Upload
-                </h3>
-                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
-                  Unggah dokumen Anda — PDF, Word, atau format lainnya.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
-                2
-              </div>
-              <div>
-                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
-                  Pahami
-                </h3>
-                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
-                  AI kami mengindeks dan memahami konten secara otomatis.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[13px] font-semibold">
-                3
-              </div>
-              <div>
-                <h3 className="text-[17px] font-semibold text-black dark:text-white mb-1">
-                  Temukan
-                </h3>
-                <p className="text-[15px] text-[#3C3C43] dark:text-[#EBEBF5]">
-                  Cari informasi dengan percakapan natural, kapan saja.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <LandingBentoSteps />
 
       {/* Success Section */}
       <section className="px-6 py-16">
@@ -242,6 +169,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <LandingTestimonials />
 
       {/* CTA Section */}
       <section className="px-6 py-16 bg-white dark:bg-[#1C1C1E]">
