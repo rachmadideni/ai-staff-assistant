@@ -451,7 +451,7 @@
         "Functions still work via Supabase RPC calls",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 34,
