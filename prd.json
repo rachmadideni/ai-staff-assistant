@@ -491,6 +491,92 @@
         "Typecheck passes"
       ],
       "passes": true
+    },
+    {
+      "id": 37,
+      "milestone": 9,
+      "title": "Fix HMAC key mismatch in dashboard pages",
+      "description": "Dashboard Server Components (super-admin/page.tsx, client-admin/page.tsx) still use SUPABASE_SERVICE_ROLE_KEY to sign HMAC payloads, but auth-utils.ts now uses HMAC_SECRET. This breaks invite and document operations in production.",
+      "checks": [
+        "super-admin/page.tsx uses HMAC_SECRET for signing",
+        "client-admin/page.tsx uses HMAC_SECRET for signing",
+        "Typecheck passes"
+      ],
+      "passes": true
+    },
+    {
+      "id": 38,
+      "milestone": 9,
+      "title": "Add error boundaries and loading states",
+      "description": "Add error.tsx and loading.tsx files to key routes (dashboard, staff chat, auth pages). Users currently see generic Next.js error pages on failures.",
+      "checks": [
+        "error.tsx exists for dashboard routes",
+        "loading.tsx exists for dashboard routes",
+        "error.tsx exists for staff chat page",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 39,
+      "milestone": 9,
+      "title": "Remove force-dynamic from API routes",
+      "description": "All API routes set force-dynamic which defeats Next.js caching. Only routes that read cookies/headers need this. Remove from routes that don't need it.",
+      "checks": [
+        "API routes that only read request body don't set force-dynamic",
+        "Routes that read cookies/headers keep force-dynamic",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 40,
+      "milestone": 9,
+      "title": "Add dynamic metadata for pages",
+      "description": "Staff chat page and dashboard pages should set dynamic metadata (title, description) using generateMetadata. Currently all pages show generic 'AI Staff Assistant'.",
+      "checks": [
+        "Staff chat page shows business name in title",
+        "Dashboard pages show role-appropriate titles",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 41,
+      "milestone": 9,
+      "title": "Replace select(*) with specific columns",
+      "description": "Multiple queries use select(*) fetching all columns when only a few are needed. This wastes bandwidth and increases payload size.",
+      "checks": [
+        "client-admin/page.tsx selects specific columns for documents, tokens, usage",
+        "super-admin/page.tsx selects specific columns for tenants, usage, tokens",
+        "conversation-logs.tsx selects specific columns",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 42,
+      "milestone": 9,
+      "title": "Fix Supabase client creation in conversation-logs",
+      "description": "createClient() is called outside useEffect in ConversationLogs component, creating a new client on every render. Move inside useEffect or memoize.",
+      "checks": [
+        "Supabase client created inside useEffect only",
+        "No unnecessary re-creations on render",
+        "Typecheck passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": 43,
+      "milestone": 9,
+      "title": "Add redirect for authenticated users on home page",
+      "description": "Logged-in users visiting / see the landing page instead of being redirected to dashboard. Add server-side redirect check.",
+      "checks": [
+        "Authenticated users redirect to /dashboard from /",
+        "Unauthenticated users see landing page",
+        "Typecheck passes"
+      ],
+      "passes": false
     }
   ],
   "milestones": {
@@ -500,6 +586,7 @@
     "5": "Staff Chat Assistant",
     "6": "Admin Dashboards & Usage Logs",
     "7": "Testing, Deployment & Handover",
-    "8": "Security Hardening"
+    "8": "Security Hardening",
+    "9": "Next.js Hardening"
   }
 }

@@ -20,7 +20,7 @@ export default async function SuperAdminDashboard() {
 
   if (profile?.role !== "super_admin") redirect("/dashboard/client-admin")
 
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  const secret = process.env.HMAC_SECRET || ""
   const signature = createHmac("sha256", secret).update(user.id).digest("hex")
   const authPayload = JSON.stringify({ userId: user.id, signature })
 
