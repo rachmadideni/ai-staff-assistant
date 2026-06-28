@@ -4,6 +4,11 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { StaffAccessCard } from "../staff-access-card"
 import { DocumentManager } from "./document-manager"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard",
+}
 
 export default async function ClientAdminDashboard() {
   const supabase = await createServerComponentClient()

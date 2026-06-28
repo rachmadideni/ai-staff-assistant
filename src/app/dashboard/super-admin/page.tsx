@@ -5,6 +5,11 @@ import Link from "next/link"
 import { InviteForm } from "./invite-form"
 import { BusinessRow } from "./business-row"
 import { CreateBusinessForm } from "./create-business-form"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Super Admin Dashboard",
+}
 
 export default async function SuperAdminDashboard() {
   const supabase = await createServerComponentClient()

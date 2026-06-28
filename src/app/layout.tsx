@@ -5,7 +5,10 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AI Staff Assistant",
+  title: {
+    default: "AI Staff Assistant",
+    template: "%s | AI Staff Assistant",
+  },
   description: "Internal AI assistant for staff — powered by your approved documents",
 }
 

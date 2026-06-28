@@ -539,7 +539,7 @@
         "Dashboard pages show role-appropriate titles",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 41,
