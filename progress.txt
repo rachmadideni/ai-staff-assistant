@@ -43,3 +43,5 @@
 [2026-06-28] story-39: Remove force-dynamic from API routes | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-40: Add dynamic metadata for pages | pass | Manually verified — typecheck + tests pass
 [2026-06-28] story-41: Replace select(*) with specific columns | pass | Manually verified — typecheck + tests pass
+[2026-06-28] story-42: Fix Supabase client creation in conversation-logs | pass | Moved createClient() inside useEffect to prevent client recreation on every render. | Client creation at component level (outside useEffect) causes unnecessary Supabase client instances. Moving inside useEffect with proper cleanup prevents memory leaks and redundant auth state checks.
+[2026-06-28] story-43: Add redirect for authenticated users on home page | pass | Converted page.tsx to async server component, added server-side auth check with redirect(). | Server components can use cookies() and redirect() directly. This prevents authenticated users from seeing the landing page.

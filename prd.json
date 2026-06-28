@@ -564,7 +564,7 @@
         "No unnecessary re-creations on render",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 43,
@@ -576,7 +576,7 @@
         "Unauthenticated users see landing page",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     }
   ],
   "milestones": {

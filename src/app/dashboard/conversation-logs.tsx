@@ -201,7 +201,6 @@ function ConversationLogsTable({
 
 export function ConversationLogs({ isSuperAdmin }: Props) {
   const router = useRouter()
-  const supabase = createClient()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [tenantName, setTenantName] = useState("")
@@ -209,6 +208,7 @@ export function ConversationLogs({ isSuperAdmin }: Props) {
 
   useEffect(() => {
     let cancelled = false
+    const supabase = createClient()
 
     async function load() {
       let session = (await supabase.auth.getSession()).data.session
@@ -285,7 +285,7 @@ export function ConversationLogs({ isSuperAdmin }: Props) {
 
     load()
     return () => { cancelled = true }
-  }, [isSuperAdmin, supabase, router])
+  }, [isSuperAdmin, router])
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading conversations...</p>

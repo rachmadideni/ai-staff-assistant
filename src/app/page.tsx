@@ -1,6 +1,19 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { createServerComponentClient } from "@/lib/supabase/server"
 
-export default function HomePage() {
+export const metadata = {
+  title: "AI Staff Assistant",
+}
+
+export default async function HomePage() {
+  const supabase = await createServerComponentClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center space-y-4">
