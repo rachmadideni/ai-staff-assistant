@@ -138,11 +138,13 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const authPayload = searchParams.get("authPayload")
 
     let auth: { user: { id: string }; profile: { id: string; role: string; tenant_id: string | null } } | null = null
 
-    if (authPayload) {
+    // Check Authorization header first (preferred — avoids query string token leakage)
+    const authHeader = request.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ")) {
+      const authPayload = authHeader.slice(7)
       const userId = verifyHmac(authPayload)
       if (userId) {
         const profile = await lookupProfile(userId)
@@ -152,6 +154,7 @@ export async function GET(request: Request) {
       }
     }
 
+    // Fallback to session-based auth
     if (!auth) {
       const supabase = await createServerSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()

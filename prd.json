@@ -436,7 +436,7 @@
         "documents GET route accepts authPayload in request body or header, not query string",
         "Typecheck passes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": 33,

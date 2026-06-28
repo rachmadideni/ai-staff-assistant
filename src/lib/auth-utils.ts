@@ -4,7 +4,7 @@ import { createAdminClient } from "./supabase/admin"
 export function verifyHmac(authPayload: string): string | null {
   try {
     const parsed = JSON.parse(authPayload)
-    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+    const secret = process.env.HMAC_SECRET || ""
     const expected = createHmac("sha256", secret).update(parsed.userId).digest("hex")
     if (expected !== parsed.signature) return null
     return parsed.userId
